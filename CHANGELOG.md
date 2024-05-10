@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/arpanrec/vaultops/compare/1.0.2...1.0.3) (2024-05-10)
+
+
+### Bug Fixes
+
+* remove secrets ([7df8045](https://github.com/arpanrec/vaultops/commit/7df804576df6a409ee938b05b9c3fc59646d7179))
+
 ## [1.0.2](https://github.com/arpanrec/vaultops/compare/1.0.1...1.0.2) (2024-05-10)
 
 
