@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/arpanrec/vaultops/compare/1.0.0...1.0.1) (2024-05-10)
+
+
+### Bug Fixes
+
+* tune userpass mount ([eb3eafa](https://github.com/arpanrec/vaultops/commit/eb3eafac928247a24d7024a09c82e8ca17a31bbc))
+
 # 1.0.0 (2024-05-10)
 
 
