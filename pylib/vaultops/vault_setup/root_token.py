@@ -6,7 +6,7 @@ Enables the generation of a new root token in HashiCorp Vault.
 import base64
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import hvac  # type: ignore
 from hvac.exceptions import (  # type: ignore
@@ -128,18 +128,22 @@ def regenerate_root_token(  # pylint: disable=too-many-arguments, too-many-local
 
 
 # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-def vault_token_revoke(vault_ha_client: VaultHaClient):
+def vault_token_revoke(vault_client: Union[VaultHaClient, VaultRaftNodeHvac]):
     """
     Revoke all tokens and destroy all AppRole secret ID accessors in HashiCorp Vault.
-
     Args:
         vault_ha_client (VaultHaClient): The details of the HashiCorp Vault Raft node.
-
     Returns:
         None
     """
 
-    hvac_client: hvac.Client = vault_ha_client.hvac_client()
+    hvac_client: hvac.Client
+    if isinstance(vault_client, VaultRaftNodeHvac):
+        hvac_client = vault_client.hvac_client
+    elif isinstance(vault_client, VaultHaClient):
+        hvac_client = vault_client.hvac_client()
+    else:
+        raise ValueError(f"Unsupported vault_client type: {type(vault_client)}")
 
     current_accessor = hvac_client.auth.token.lookup_self().get("data").get("accessor")
     payload = hvac_client.list("auth/token/accessors")
