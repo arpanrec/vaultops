@@ -42,14 +42,19 @@ def add_admin_user_policy(ready_node_details: VaultRaftNodeHvac, vault_ha_client
     )
 
     current_auth_methods: Dict[str, Any] = client.sys.list_auth_methods()["data"]
-    if f"{vault_ha_client.userpass_mount}/" in current_auth_methods:
-        LOGGER.info("%s auth method already exists, unmounting", vault_ha_client.userpass_mount)
-        disable_auth_mount_res = client.sys.disable_auth_method(path=vault_ha_client.userpass_mount)
-        LOGGER.debug("%s:: Disabled auth mount response: %s", ready_node_details.node_id, disable_auth_mount_res)
+    if not f"{vault_ha_client.userpass_mount}/" in current_auth_methods:
+        LOGGER.info("Creating auth method %s", vault_ha_client.userpass_mount)
+        enable_auth_mount_res = client.sys.enable_auth_method(
+            method_type="userpass", path=vault_ha_client.userpass_mount
+        )
+        LOGGER.debug("%s:: Enabled auth mount response: %s", ready_node_details.node_id, enable_auth_mount_res)
 
-    LOGGER.info("Creating auth method %s", vault_ha_client.userpass_mount)
-    enable_auth_mount_res = client.sys.enable_auth_method(method_type="userpass", path=vault_ha_client.userpass_mount)
-    LOGGER.debug("%s:: Enabled auth mount response: %s", ready_node_details.node_id, enable_auth_mount_res)
+    client.sys.tune_auth_method(
+        path=vault_ha_client.userpass_mount,
+        description="Userpass auth method for admin user",
+        default_lease_ttl="1h",
+        max_lease_ttl="24h",
+    )
 
     LOGGER.info("Creating %s user", vault_ha_client.admin_user)
     user_create_data = {
