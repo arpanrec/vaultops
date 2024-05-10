@@ -1,0 +1,96 @@
+---
+- name: Vaultops | Prepare
+  hosts: localhost
+  gather_facts: false
+  become: false
+  no_log: "{{ pv_global_config_no_log | default('true') }}"
+  tasks:
+      - name: Vaultops | Prepare | Download Vault binary
+        ansible.builtin.get_url:
+            dest: "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ item.key }}.zip"
+            mode: 0644
+            checksum: "sha256:{{ item.value['sha256sum'][vault_rv_version] }}"
+            url: "https://releases.hashicorp.com/vault/{{ vault_rv_version }}/vault_\
+                {{ vault_rv_version }}_linux_{{ item.value['vault_arch'] }}.zip"
+        loop: "{{ pv_vault_info_map | dict2items }}"
+        tags: vault,vault_system_install,vault_dr,never
+
+- name: Vaultops | Add Host Keys
+  hosts: vault_vm_servers,vault_nodes_servers
+  gather_facts: false
+  become: false
+  timeout: 100
+  tags: patch,patch_install,patch_beautify,vault,vault_system_install,vault_node_install,vault_dr,never
+  any_errors_fatal: true
+  no_log: "{{ pv_global_config_no_log | default('true') }}"
+  tasks:
+      - name: Vaultops | Add Host Keys | Add keys to known_hosts file /tmp/vault_vm_server_ssh_known_hosts
+        become: false
+        ansible.builtin.known_hosts:
+            name: "{{ ansible_host }}"
+            key: "{{ ansible_host }} {{ item }}"
+            path: "{{ vault_vm_server_ssh_user_known_hosts_file }}"
+            state: present
+        delegate_to: localhost
+        loop: "{{ host_keys }}"
+        throttle: 1
+
+- name: Vaultops | Vault
+  hosts: vault_vm_servers
+  gather_facts: false
+  become: false
+  timeout: 100
+  any_errors_fatal: true
+  no_log: "{{ pv_global_config_no_log | default('true') }}"
+  tasks:
+      - name: Vaultops | Vault | Patch | Install
+        become: true
+        tags: patch,patch_install,never
+        ansible.builtin.import_tasks:
+            file: tasks/patch.yml
+
+      - name: Vaultops | Vault | Patch | Beautify
+        become: false
+        tags: patch,patch_beautify,never
+        ansible.builtin.import_tasks:
+            file: tasks/beautify.yml
+
+      - name: Vaultops | Vault | Install | System
+        become: true
+        tags: vault,vault_system_install,vault_dr,never
+        ansible.builtin.import_tasks:
+            file: tasks/install.yml
+
+- name: Vaultops | Vault Virtual Node Server
+  hosts: vault_nodes_servers
+  gather_facts: false
+  become: false
+  timeout: 100
+  any_errors_fatal: true
+  no_log: "{{ pv_global_config_no_log | default('true') }}"
+  tasks:
+      - name: Vaultops | Vault Virtual Node Server | Install
+        become: true
+        tags: vault,vault_node_install,vault_dr,never
+        ansible.builtin.import_tasks:
+            file: tasks/install_node.yml
+
+      - name: Vaultops | Vault Virtual Node Server | DR
+        become: true
+        tags: vault_dr,never
+        ansible.builtin.import_tasks:
+            file: tasks/dr.yml
+
+- name: Vaultops | Downstream
+  hosts: localhost
+  gather_facts: false
+  become: false
+  timeout: 100
+  any_errors_fatal: true
+  no_log: "{{ pv_global_config_no_log | default('true') }}"
+  tasks:
+      - name: Vaultops | Downstream | github.com
+        become: true
+        tags: downstream,never,downstream_github
+        ansible.builtin.import_tasks:
+            file: tasks/github.yml

@@ -1,0 +1,23 @@
+---
+- name: Vaultops | Vault | Patch | Install | Set Public Key | Set authorized
+  ansible.posix.authorized_key:
+      user: "{{ ansible_ssh_user }}"
+      state: present
+      key: "{{ ansible_ssh_public_key_content }}"
+
+- name: Vaultops | Vault | Patch | Install | System
+  ansible.builtin.import_role:
+      name: arpanrec.nebula.linux_patching
+  vars:
+      linux_patching_rv_extra_packages:
+          - python3-docker
+          - python3-cryptography
+          - davfs2
+      linux_patching_rv_install_devel_packages: false
+
+- name: Vaultops | Vault | Patch | Install | SSH Hardening
+  ansible.builtin.import_role:
+      name: arpanrec.nebula.ssh_hardening
+  vars:
+      ssh_hardening_rv_ssh_security_password_authentication: false
+      ssh_hardening_rv_ssh_security_permit_root_login: false

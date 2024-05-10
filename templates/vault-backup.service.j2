@@ -1,0 +1,15 @@
+[Unit]
+Description="HashiCorp Vault - A tool for managing secrets - Backup"
+Documentation=https://www.vaultproject.io/docs/
+Requires={{ pv_vault_systemd_service }}@%i.service
+After={{ pv_vault_systemd_service }}@%i.service
+
+[Service]
+User={{ pv_vault_user }}
+Group={{ pv_vault_group }}
+ExecStart=/bin/bash -c "tar -czf {{ pv_vault_backup_base_path }}/%i/$(date +%%s).tar.gz -C {{ pv_vault_base_path }}/%i ."
+WorkingDirectory={{ pv_vault_base_path }}/%i
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target

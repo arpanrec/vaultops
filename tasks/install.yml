@@ -1,0 +1,113 @@
+---
+- name: Vaultops | Vault | Install | System | Populate facts
+  ansible.builtin.setup:
+      gather_subset:
+          - hardware
+
+- name: Vaultops | Vault | Install | System | Make sure os package doesn't exists
+  ansible.builtin.apt:
+      name: vault
+      state: absent
+
+- name: Vaultops | Vault | Install | System | Try to remove old
+  block:
+      - name: Vaultops | Vault | Install | System | Try to remove old | Populate service facts
+        ansible.builtin.service_facts:
+
+      - name: Vaultops | Vault | Install | System | Try to remove old | Disable vault service for all vault@vm* services
+        ansible.builtin.systemd:
+            name: "{{ vault_node_systemd_service.value.name }}"
+            enabled: false
+            state: stopped
+            force: true
+            daemon_reload: true
+            daemon_reexec: true
+        loop: "{{ ansible_facts.services | dict2items }}"
+        loop_control:
+            loop_var: vault_node_systemd_service
+        when: >-
+            (
+                (
+                    vault_node_systemd_service.key is match(
+                        '^' + pv_vault_systemd_service + '@' + inventory_hostname + '.*'
+                        )
+                    or
+                    vault_node_systemd_service.key is match('^' + pv_vault_systemd_service + '@.*')
+                    or
+                    vault_node_systemd_service.key is match(
+                        '^' + pv_vault_backup_systemd_service + '@' + inventory_hostname + '.*'
+                        )
+                    or
+                    vault_node_systemd_service.key == 'vault.service'
+                )
+
+            and
+
+                (
+                    vault_node_systemd_service.key != pv_vault_systemd_service + '@.service'
+                )
+
+            )
+
+      - name: Vaultops | Vault | Install | System | Try to remove old | Find old vault install directories
+        ansible.builtin.find:
+            paths: "{{ pv_vault_base_path }}"
+            file_type: directory
+            recurse: false
+        register: vault_old_install_dirs
+
+      - name: Vaultops | Vault | Install | System | Try to remove old | Delete old vault install directories
+        ansible.builtin.file:
+            path: "{{ vault_old_install_path }}"
+            state: absent
+        loop: "{{ vault_old_install_dirs.files | map(attribute='path') | list }}"
+        loop_control:
+            loop_var: vault_old_install_path
+        when: vault_old_install_path |
+            replace(pv_vault_base_path + '/' , '') not in pv_vault_raft_nodes_in_host.keys() | list
+
+- name: Vaultops | Vault | Install | System | Node | Unzip Vault
+  ansible.builtin.unarchive:
+      src: "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ ansible_architecture }}.zip"
+      dest: "/usr/local/bin"
+      owner: root
+      group: root
+      mode: 0755
+      remote_src: false
+  timeout: 300
+
+- name: Vaultops | Vault | Install | System | Set cap CAP_IPC_LOCK+ep
+  community.general.capabilities:
+      path: "/usr/local/bin/vault"
+      capability: cap_ipc_lock+ep
+      state: present
+
+- name: Vaultops | Vault | Install | System | Create vault group
+  ansible.builtin.group:
+      name: "{{ pv_vault_group }}"
+      state: present
+      system: true
+
+- name: Vaultops | Vault | Install | System | Create vault user
+  ansible.builtin.user:
+      name: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+      shell: /bin/false
+      system: true
+      state: present
+
+- name: Vaultops | Vault | Install | System | Create Systemd service
+  ansible.builtin.template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: root
+      group: root
+      mode: 0644
+      backup: false
+  loop:
+      - src: "{{ pv_vault_systemd_service }}.service.j2"
+        dest: "/etc/systemd/system/{{ pv_vault_systemd_service }}@.service"
+        # - src: "{{ pv_vault_backup_systemd_service }}.service.j2"
+        #   dest: "/etc/systemd/system/{{ pv_vault_backup_systemd_service }}@.service"
+        # - src: "{{ pv_vault_backup_systemd_service }}.timmer.j2"
+        #   dest: "/etc/systemd/system/{{ pv_vault_backup_systemd_service }}@.timer"

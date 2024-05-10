@@ -1,0 +1,13 @@
+[Unit]
+Description="HashiCorp Vault - A tool for managing secrets - Backup Timer"
+Documentation=https://www.vaultproject.io/docs/
+
+[Timer]
+OnBootSec=0
+OnUnitActiveSec=12h
+AccuracySec=1m
+Persistent=true
+Unit={{ pv_vault_backup_systemd_service }}@%i.service
+
+[Install]
+WantedBy=timers.target
