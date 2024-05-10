@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/arpanrec/vaultops/compare/1.0.3...1.0.4) (2024-05-10)
+
+
+### Bug Fixes
+
+* doc external_services ([9a15c0f](https://github.com/arpanrec/vaultops/commit/9a15c0fb8322be074b4b039b649850c7d5dcf272))
+
 ## [1.0.3](https://github.com/arpanrec/vaultops/compare/1.0.2...1.0.3) (2024-05-10)
 
 
