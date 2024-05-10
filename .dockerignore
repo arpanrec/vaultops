@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# But not these files...
+requirements.yml
+pyproject.toml
+poetry.lock

@@ -1,0 +1,10 @@
+ui                  = true
+default_lease_ttl   = "768h"
+disable_clustering  = false
+disable_mlock       = true
+log_level           = "trace"
+max_lease_ttl       = "768h"
+log_file            = "{{ pv_vault_log_dir }}/vault-{timestamp}.log"
+api_addr            = "{{ pv_vault_api_addr }}"
+cluster_name        = "{{ pv_vault_cluster_name }}"
+cluster_addr        = "{{ pv_vault_cluster_addr }}"
