@@ -21,7 +21,7 @@
 - name: Vaultops | Downstream | github.com | Get
   community.hashi_vault.vault_kv2_get:
       url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      path: external_services
+      path: external_services/github
       token: "{{ pv_tmp_vault_downstream_github_login_token }}"
       validate_certs: true
   register: gh_prod_api_token_res
