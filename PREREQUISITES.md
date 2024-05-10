@@ -97,7 +97,10 @@ vault_admin_password: # TODO: The admin password of the vault, Type: str
 vault_admin_userpass_mount_path: # TODO: The mount path of the userpass, Type: str
 vault_admin_policy_name: # TODO: The policy name of the admin, Type: str
 vault_admin_client_cert_p12_passphrase: # TODO: The passphrase of the client certificate, Type: str
+external_services: # TODO: The external services of the vault, this will be uploaded to secret/data/external_services, Type: Dict[Str, Any]
 ```
+
+## Export Requirements
 
 ```bash
 poetry export --without-hashes --format=requirements.txt --with dev > .github/files/requirements-dev.txt
