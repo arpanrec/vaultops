@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/arpanrec/vaultops/compare/1.0.4...1.1.0) (2024-05-10)
+
+
+### Features
+
+* Update vault_setup function to handle different types of vault clients ([0dcded6](https://github.com/arpanrec/vaultops/commit/0dcded6915632e0cc0307ae5baddda1d37f951c8))
+
 ## [1.0.4](https://github.com/arpanrec/vaultops/compare/1.0.3...1.0.4) (2024-05-10)
 
 
