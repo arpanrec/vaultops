@@ -29,7 +29,7 @@ from .vault_pki_root_ca import setup_root_pki
 LOGGER = logging.getLogger(__name__)
 
 
-def vault_setup(inventory_file_name: str) -> None:
+def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-statements
     """
     Setup vault
     args:
@@ -112,7 +112,10 @@ def vault_setup(inventory_file_name: str) -> None:
     terraform_apply(vault_config=vault_config, vault_ha_client=vault_ha_client)
 
     LOGGER.info("Revoking all tokens and secret ID accessors")
-    vault_token_revoke(vault_ha_client=vault_ha_client)
+    if vault_config.get_vault_unseal_keys():
+        vault_token_revoke(vault_client=ready_node_details)
+    else:
+        vault_token_revoke(vault_client=vault_ha_client)
 
     LOGGER.info("Updating external service secrets")
     update_external_services(vault_ha_client=vault_ha_client, vault_config=vault_config)
