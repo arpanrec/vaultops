@@ -1,3 +1,10 @@
+## [1.4.3](https://github.com/arpanrec/vaultops/compare/1.4.2...1.4.3) (2024-05-12)
+
+
+### Bug Fixes
+
+* bot GITHUB_ACTIONS ([886810a](https://github.com/arpanrec/vaultops/commit/886810a782d0c16c1e90f0b3564735cc8688040b))
+
 ## [1.4.2](https://github.com/arpanrec/vaultops/compare/1.4.1...1.4.2) (2024-05-12)
 
 
