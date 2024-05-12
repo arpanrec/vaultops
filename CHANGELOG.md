@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/arpanrec/vaultops/compare/1.3.0...1.4.0) (2024-05-12)
+
+
+### Features
+
+* read pulumi credentials ([7dffd04](https://github.com/arpanrec/vaultops/commit/7dffd0478277a052761ac6fb2ede4bda4a9e0589))
+
 # [1.3.0](https://github.com/arpanrec/vaultops/compare/1.2.0...1.3.0) (2024-05-12)
 
 
