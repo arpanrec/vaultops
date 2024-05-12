@@ -34,10 +34,22 @@
   ansible.builtin.set_fact:
       gh_prod_api_token: "{{ gh_prod_api_token_res.data.data.GH_PROD_API_TOKEN }}"
 
+- name: Vaultops | Downstream | github.com | Get role-id
+  community.hashi_vault.vault_read:
+      url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
+      path: auth/approle/role/github-master-controller/role-id
+      token: "{{ pv_tmp_vault_downstream_github_login_token }}"
+      validate_certs: true
+  register: github_master_controller_role_id
+  environment:
+      VAULT_CACERT: "{{ vault_ha_client.vault_root_ca_cert_file }}"
+      VAULT_CLIENT_CERT: "{{ vault_ha_client.vault_client_cert_file }}"
+      VAULT_CLIENT_KEY: "{{ vault_ha_client.vault_client_key_file }}"
+
 - name: Vaultops | Downstream | github.com | Get secret-id
   community.hashi_vault.vault_write:
       url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      path: auth/approle/role/github-master-controller/secret-id
+      path: "auth/approle/role/{{ github_master_controller_role_id.data.data.role_id }}/secret-id"
       token: "{{ pv_tmp_vault_downstream_github_login_token }}"
       validate_certs: true
   register: github_master_controller_secret_id
@@ -102,6 +114,8 @@
   loop:
       - name: VAULT_APPROLE_SECRET_ID
         unencrypted_secret: "{{ github_master_controller_secret_id.data.data.secret_id }}"
+      - name: VAULT_APPROLE_ROLE_ID
+        unencrypted_secret: "{{ github_master_controller_role_id.data.data.role_id }}"
       - name: VAULT_CLIENT_PRIVATE_KEY_CONTENT_BASE64
         unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.private_key }}"
         base64: true
