@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/arpanrec/vaultops/compare/1.4.0...1.4.1) (2024-05-12)
+
+
+### Bug Fixes
+
+* remove role id ([1de972e](https://github.com/arpanrec/vaultops/commit/1de972ee62854f19bd17adf5d913f3eaa4e445fe))
+
 # [1.4.0](https://github.com/arpanrec/vaultops/compare/1.3.0...1.4.0) (2024-05-12)
 
 
