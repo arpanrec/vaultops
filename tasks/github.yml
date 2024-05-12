@@ -37,7 +37,7 @@
 - name: Vaultops | Downstream | github.com | Get secret-id
   community.hashi_vault.vault_write:
       url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      path: auth/approle/role/github_master_controller/secret-id
+      path: auth/approle/role/github-master-controller/secret-id
       token: "{{ pv_tmp_vault_downstream_github_login_token }}"
       validate_certs: true
   register: github_master_controller_secret_id
@@ -63,7 +63,7 @@
 - name: Vaultops | Downstream | github.com | Create Repository
   community.general.github_repo:
       access_token: "{{ gh_prod_api_token }}"
-      name: github_master_controller
+      name: github-master-controller
       description: "Github master Controller"
       private: false
       state: present
@@ -86,7 +86,7 @@
           "Accept": "application/vnd.github.v3"
           "content-type": "application/vnd.github+json"
           "authorization": "Bearer {{ gh_prod_api_token }}"
-  register: pv_scmint_tmp_gitlab_master_controller_repo_env_create
+  register: pv_scmint_tmp_github_master_controller_repo_env_create
 
 - name: Vaultops | Downstream | github.com | Create or Update a repository secret
   github_action_secret:
@@ -94,7 +94,7 @@
       pat: "{{ gh_prod_api_token }}"
       is_secret: "{{ item.is_secret | default(omit) }}"
       state: present
-      environment: "{{ pv_scmint_tmp_gitlab_master_controller_repo_env_create.json.name }}"
+      environment: "{{ pv_scmint_tmp_github_master_controller_repo_env_create.json.name }}"
       unencrypted_value: "{{ item.unencrypted_secret }}"
       repository: "{{ pv_scmint_github_repo_create.repo.full_name }}"
       name: "{{ item.name }}"
@@ -126,7 +126,7 @@
       headers:
           "Accept": "application/vnd.github+json"
           "authorization": "Bearer {{ gh_prod_api_token }}"
-  register: pv_scmint_tmp_gitlab_master_controller_repo_dispatch
+  register: pv_scmint_tmp_github_master_controller_repo_dispatch
 
 - name: Vaultops | Downstream | github.com | Dispatch Workflow
   ansible.builtin.uri:
@@ -141,4 +141,4 @@
       headers:
           "Accept": "application/vnd.github+json"
           "authorization": "Bearer {{ gh_prod_api_token }}"
-  when: pv_scmint_tmp_gitlab_master_controller_repo_dispatch.status == 200
+  when: pv_scmint_tmp_github_master_controller_repo_dispatch.status == 200
