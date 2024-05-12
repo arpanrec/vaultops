@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/arpanrec/vaultops/compare/1.2.0...1.3.0) (2024-05-12)
+
+
+### Features
+
+* get role id dynamically ([f4403d0](https://github.com/arpanrec/vaultops/commit/f4403d0f45a0891c9c09d45c2ce5dcd77e354c18))
+
 # [1.2.0](https://github.com/arpanrec/vaultops/compare/1.1.0...1.2.0) (2024-05-12)
 
 
