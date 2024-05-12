@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/arpanrec/vaultops/compare/1.4.1...1.4.2) (2024-05-12)
+
+
+### Bug Fixes
+
+* Get secret-id ([486a7a9](https://github.com/arpanrec/vaultops/commit/486a7a9baaa1214d57efcccaa6994f7492782aa6))
+
 ## [1.4.1](https://github.com/arpanrec/vaultops/compare/1.4.0...1.4.1) (2024-05-12)
 
 
