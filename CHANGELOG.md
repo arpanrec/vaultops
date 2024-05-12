@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/arpanrec/vaultops/compare/1.1.0...1.2.0) (2024-05-12)
+
+
+### Features
+
+* change role names ([7b96270](https://github.com/arpanrec/vaultops/commit/7b96270c3748e309e40ce034e7e7e5350f58e753))
+
 # [1.1.0](https://github.com/arpanrec/vaultops/compare/1.0.4...1.1.0) (2024-05-10)
 
 
