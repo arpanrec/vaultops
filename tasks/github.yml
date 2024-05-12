@@ -24,7 +24,7 @@
       path: external_services/github
       token: "{{ pv_tmp_vault_downstream_github_login_token }}"
       validate_certs: true
-  register: gh_prod_api_token_res
+  register: vault_github_external_secrets
   environment:
       VAULT_CACERT: "{{ vault_ha_client.vault_root_ca_cert_file }}"
       VAULT_CLIENT_CERT: "{{ vault_ha_client.vault_client_cert_file }}"
@@ -32,7 +32,7 @@
 
 - name: Vaultops | Downstream | github.com | Set Token
   ansible.builtin.set_fact:
-      gh_prod_api_token: "{{ gh_prod_api_token_res.data.data.GH_PROD_API_TOKEN }}"
+      gh_prod_api_token: "{{ vault_github_external_secrets.data.data.GH_PROD_API_TOKEN }}"
 
 - name: Vaultops | Downstream | github.com | Get role-id
   community.hashi_vault.vault_read:
@@ -128,6 +128,10 @@
         base64: true
       - name: VAULT_ADDR
         unencrypted_secret: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
+      - name: ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY
+        unencrypted_secret: "${{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY }}"
+      - name: ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE
+        unencrypted_secret: "${{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE }}"
 
 - name: Vaultops | Downstream | github.com | Github Actions Workflow Details
   ansible.builtin.uri:
