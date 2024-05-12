@@ -15,8 +15,8 @@ resource "vault_approle_auth_backend_role" "github-master-controller" {
   role_name          = "github-master-controller"
   token_policies     = ["default", "github-master-controller", "default_login"]
   secret_id_ttl      = 0
-  role_id            = "github-master-controller"
   secret_id_num_uses = 0
+  # role_id            = "github-master-controller"
 }
 
 resource "vault_approle_auth_backend_role" "gitlab-master-controller" {
@@ -25,8 +25,8 @@ resource "vault_approle_auth_backend_role" "gitlab-master-controller" {
   role_name          = "gitlab-master-controller"
   token_policies     = ["default", "gitlab-master-controller", "default_login"]
   secret_id_ttl      = 0
-  role_id            = "gitlab-master-controller"
   secret_id_num_uses = 0
+  # role_id            = "gitlab-master-controller"
 }
 
 resource "vault_approle_auth_backend_role" "minio-kes" {
@@ -35,7 +35,7 @@ resource "vault_approle_auth_backend_role" "minio-kes" {
   role_name          = "minio-kes"
   token_policies     = ["default", "minio-kes", "default_login"]
   secret_id_ttl      = 0
-  role_id            = "minio-kes"
   secret_id_num_uses = 0
   token_num_uses     = 0
+  # role_id            = "minio-kes"
 }
