@@ -129,9 +129,9 @@
       - name: VAULT_ADDR
         unencrypted_secret: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
       - name: ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY
-        unencrypted_secret: "${{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY }}"
+        unencrypted_secret: "{{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY }}"
       - name: ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE
-        unencrypted_secret: "${{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE }}"
+        unencrypted_secret: "{{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE }}"
 
 - name: Vaultops | Downstream | github.com | Github Actions Workflow Details
   ansible.builtin.uri:
