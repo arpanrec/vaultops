@@ -86,7 +86,7 @@ EXAMPLES = r"""
       api_ep: "https://api.github.com"
       pat: "{{ lookup('ansible.builtin.env', 'GH_PROD_API_TOKEN') }}"
       unencrypted_value: "supersecret"
-      repository: "github_master_controller"
+      repository: "arpanrec/github-master-controller"
       name: "ENV_SECRET1"
 
 - name: Create or Update a organization secret
@@ -103,7 +103,7 @@ EXAMPLES = r"""
   github_action_secret:
       api_ep: "https://api.github.com"
       pat: "{{ lookup('ansible.builtin.env', 'GH_PROD_API_TOKEN') }}"
-      repository: "github_master_controller"
+      repository: "arpanrec/github-master-controller"
       name: "ENV_SECRET"
       state: absent
 """

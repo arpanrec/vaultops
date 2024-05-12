@@ -1,4 +1,4 @@
-data "vault_policy_document" "github_master_controller" {
+data "vault_policy_document" "github-master-controller" {
   rule {
     path         = "pki/issue/vault_client_certificate"
     capabilities = ["create", "update", "read"]
@@ -15,12 +15,12 @@ data "vault_policy_document" "github_master_controller" {
     description  = "read terraform_cloud credentials"
   }
   rule {
-    path         = "auth/approle/role/github_master_controller/*"
+    path         = "auth/approle/role/github-master-controller/*"
     capabilities = ["create", "update", "read"]
   }
 }
 
-resource "vault_policy" "github_master_controller" {
-  name   = "github_master_controller"
-  policy = data.vault_policy_document.github_master_controller.hcl
+resource "vault_policy" "github-master-controller" {
+  name   = "github-master-controller"
+  policy = data.vault_policy_document.github-master-controller.hcl
 }
