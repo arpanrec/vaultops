@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/arpanrec/vaultops/compare/1.4.3...1.4.4) (2024-05-12)
+
+
+### Bug Fixes
+
+* syntax fix for gpg values ([9e44e73](https://github.com/arpanrec/vaultops/commit/9e44e73ad50c55262d358b50a51bbc80b6155917))
+
 ## [1.4.3](https://github.com/arpanrec/vaultops/compare/1.4.2...1.4.3) (2024-05-12)
 
 
