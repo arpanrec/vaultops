@@ -15,6 +15,11 @@ data "vault_policy_document" "github-master-controller" {
     description  = "read terraform_cloud credentials"
   }
   rule {
+    path         = "secret/data/external_services/pulumi"
+    capabilities = ["read"]
+    description  = "read pulumi credentials"
+  }
+  rule {
     path         = "auth/approle/role/github-master-controller/*"
     capabilities = ["create", "update", "read"]
   }
