@@ -49,7 +49,7 @@
 - name: Vaultops | Downstream | github.com | Get secret-id
   community.hashi_vault.vault_write:
       url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      path: "auth/approle/role/{{ github_master_controller_role_id.data.data.role_id }}/secret-id"
+      path: "auth/approle/role/github-master-controller/secret-id"
       token: "{{ pv_tmp_vault_downstream_github_login_token }}"
       validate_certs: true
   register: github_master_controller_secret_id
