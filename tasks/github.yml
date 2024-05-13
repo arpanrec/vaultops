@@ -82,6 +82,14 @@
       force_defaults: true
   register: pv_scmint_github_repo_create
 
+- name: Vaultops | Downstream | github.com | Assert Repository
+  ansible.builtin.assert:
+      that:
+          - pv_scmint_github_repo_create.repo.default_branch == "main"
+      fail_msg: "Default branch is not main, Current default branch is
+          {{ pv_scmint_github_repo_create.repo.default_branch }}"
+      success_msg: "Default branch is main"
+
 - name: Vaultops | Downstream | github.com | Create environment
   ansible.builtin.uri:
       url: "{{ pv_scmint_github_repo_create.repo.url }}/environments/production"
@@ -128,10 +136,6 @@
         base64: true
       - name: VAULT_ADDR
         unencrypted_secret: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      - name: ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY
-        unencrypted_secret: "{{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY }}"
-      - name: ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE
-        unencrypted_secret: "{{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE }}"
 
 - name: Vaultops | Downstream | github.com | Github Actions Workflow Details
   ansible.builtin.uri:
