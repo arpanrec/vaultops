@@ -155,6 +155,7 @@
       url: "{{ pv_scmint_github_repo_create.repo.url }}/actions/workflows/deploy.yml/dispatches"
       method: POST
       validate_certs: true
+      status_code: [204, 200]
       return_content: true
       body_format: json
       body:
@@ -164,3 +165,5 @@
           "Accept": "application/vnd.github+json"
           "authorization": "Bearer {{ gh_prod_api_token }}"
   when: pv_scmint_tmp_github_master_controller_repo_dispatch.status == 200
+  register: pv_scmint_tmp_github_master_controller_repo_dispatch_res
+  changed_when: pv_scmint_tmp_github_master_controller_repo_dispatch_res.status == 204
