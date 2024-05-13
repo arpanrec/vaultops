@@ -30,10 +30,22 @@
       VAULT_CLIENT_CERT: "{{ vault_ha_client.vault_client_cert_file }}"
       VAULT_CLIENT_KEY: "{{ vault_ha_client.vault_client_key_file }}"
 
+- name: Vaultops | Downstream | github.com | Get bot account username
+  ansible.builtin.uri:
+      url: "https://api.github.com/user"
+      method: GET
+      validate_certs: true
+      return_content: true
+      body_format: json
+      headers:
+          "Accept": "application/vnd.github.v3+json"
+          "authorization": "Bearer {{ vault_github_external_secrets.data.data.GH_BOT_API_TOKEN }}"
+  register: github_action_bot_username_res
+
 - name: Vaultops | Downstream | github.com | Set Token
   ansible.builtin.set_fact:
       gh_prod_api_token: "{{ vault_github_external_secrets.data.data.GH_PROD_API_TOKEN }}"
-      github_action_bot_username: "{{ vault_github_external_secrets.data.data.ARPANREC_GITHUB_ACTIONS_BOT_USERNAME }}"
+      github_action_bot_username: "{{ github_action_bot_username_res.json.login }}"
 
 - name: Vaultops | Downstream | github.com | Get role-id
   community.hashi_vault.vault_read:
@@ -109,34 +121,34 @@
           "authorization": "Bearer {{ gh_prod_api_token }}"
   register: pv_scmint_tmp_github_master_controller_repo_env_create
 
-# - name: Vaultops | Downstream | github.com | Create or Update a repository secret
-#   github_action_secret:
-#       api_ep: "https://api.github.com"
-#       pat: "{{ gh_prod_api_token }}"
-#       is_secret: "{{ item.is_secret | default(omit) }}"
-#       state: present
-#       environment: "{{ pv_scmint_tmp_github_master_controller_repo_env_create.json.name }}"
-#       unencrypted_value: "{{ item.unencrypted_secret }}"
-#       repository: "{{ pv_scmint_github_repo_create.repo.full_name }}"
-#       name: "{{ item.name }}"
-#       is_base64_encoded: "{{ item.base64 | default(omit) }}"
-#   loop:
-#       - name: VAULT_APPROLE_SECRET_ID
-#         unencrypted_secret: "{{ github_master_controller_secret_id.data.data.secret_id }}"
-#       - name: VAULT_APPROLE_ROLE_ID
-#         unencrypted_secret: "{{ github_master_controller_role_id.data.data.role_id }}"
-#       - name: VAULT_CLIENT_PRIVATE_KEY_CONTENT_BASE64
-#         unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.private_key }}"
-#         base64: true
-#       - name: VAULT_CLIENT_CERTIFICATE_CONTENT_BASE64
-#         unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.certificate }}\n\
-#             {{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain | join('\n') }}"
-#         base64: true
-#       - name: ROOT_CA_CERTIFICATE_CONTENT_BASE64
-#         unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain | last }}"
-#         base64: true
-#       - name: VAULT_ADDR
-#         unencrypted_secret: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
+- name: Vaultops | Downstream | github.com | Create or Update a repository secret
+  github_action_secret:
+      api_ep: "https://api.github.com"
+      pat: "{{ gh_prod_api_token }}"
+      is_secret: "{{ item.is_secret | default(omit) }}"
+      state: present
+      environment: "{{ pv_scmint_tmp_github_master_controller_repo_env_create.json.name }}"
+      unencrypted_value: "{{ item.unencrypted_secret }}"
+      repository: "{{ pv_scmint_github_repo_create.repo.full_name }}"
+      name: "{{ item.name }}"
+      is_base64_encoded: "{{ item.base64 | default(omit) }}"
+  loop:
+      - name: VAULT_APPROLE_SECRET_ID
+        unencrypted_secret: "{{ github_master_controller_secret_id.data.data.secret_id }}"
+      - name: VAULT_APPROLE_ROLE_ID
+        unencrypted_secret: "{{ github_master_controller_role_id.data.data.role_id }}"
+      - name: VAULT_CLIENT_PRIVATE_KEY_CONTENT_BASE64
+        unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.private_key }}"
+        base64: true
+      - name: VAULT_CLIENT_CERTIFICATE_CONTENT_BASE64
+        unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.certificate }}\n\
+            {{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain | join('\n') }}"
+        base64: true
+      - name: ROOT_CA_CERTIFICATE_CONTENT_BASE64
+        unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain | last }}"
+        base64: true
+      - name: VAULT_ADDR
+        unencrypted_secret: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
 
 - name: Vaultops | Downstream | github.com | Github Actions Workflow Details
   ansible.builtin.uri:
