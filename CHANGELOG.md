@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/arpanrec/vaultops/compare/1.6.0...1.7.0) (2024-05-13)
+
+
+### Features
+
+* Get bot account username ([fa0920a](https://github.com/arpanrec/vaultops/commit/fa0920a76f97db4ae055b9568ac9c55359642591))
+
 # [1.6.0](https://github.com/arpanrec/vaultops/compare/1.5.0...1.6.0) (2024-05-13)
 
 
