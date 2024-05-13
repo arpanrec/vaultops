@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/arpanrec/vaultops/compare/1.4.4...1.5.0) (2024-05-13)
+
+
+### Features
+
+* Assert Repository ([2949445](https://github.com/arpanrec/vaultops/commit/29494455f67c734801ae50a013c61724bb27d565))
+
 ## [1.4.4](https://github.com/arpanrec/vaultops/compare/1.4.3...1.4.4) (2024-05-12)
 
 
