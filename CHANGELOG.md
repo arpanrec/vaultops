@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/arpanrec/vaultops/compare/1.5.0...1.6.0) (2024-05-13)
+
+
+### Features
+
+* Vaultops | Downstream | github.com | Add collaborator ([167537e](https://github.com/arpanrec/vaultops/commit/167537ee444b15469941d88a6fa840296685b495))
+
 # [1.5.0](https://github.com/arpanrec/vaultops/compare/1.4.4...1.5.0) (2024-05-13)
 
 
