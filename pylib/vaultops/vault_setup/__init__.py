@@ -8,14 +8,16 @@ from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes
 from cryptography.x509 import Certificate, load_pem_x509_certificate
 
 from .external_services import update_external_services
+from .github import add_vault_access_to_github
 from .raft_snapshot import take_raft_snapshot
 from ..builder.vault_config import build_vault_config
 from ..builder.vault_raft_node_hvac import create_raft_node_hvac
+from ..models.ha_client import VaultHaClient
 from ..models.vault_config import VaultConfig
 from .admin_user import add_admin_user_policy
 from .codifiedvault import terraform_apply
 from .find_ready import find_ready
-from .ha_client import VaultHaClient, create_ha_client
+from .ha_client import create_ha_client
 from .initialize import initialize_vault
 from .raft_nodes_join import raft_ops
 from .raft_node_hvac import (
@@ -122,3 +124,6 @@ def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-s
 
     LOGGER.info("Taking a raft snapshot")
     take_raft_snapshot(vault_ha_client=vault_ha_client, vault_config=vault_config)
+
+    LOGGER.info("Adding vault access to GitHub user repositories")
+    add_vault_access_to_github(vault_ha_client=vault_ha_client)
