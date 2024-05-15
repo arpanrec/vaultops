@@ -19,8 +19,6 @@ def add_vault_access_to_github(vault_ha_client: VaultHaClient):
     """
     LOGGER.info("Adding vault access to GitHub user repositories")
 
-    vault_access_secrets: Dict[str, str] = __get_access_secrets(vault_ha_client)
-
     client = vault_ha_client.hvac_client()
     secret_version_response = client.secrets.kv.v2.read_secret_version(
         path="external_services/github",
@@ -30,12 +28,12 @@ def add_vault_access_to_github(vault_ha_client: VaultHaClient):
     auth = Auth.Token(github_secret_version_response["GH_PROD_API_TOKEN"])
     g = Github(auth=auth)
     user = g.get_user()
-    login_user = user.login
     LOGGER.info("GitHub user: %s", user.login)
     all_repos_with_access = user.get_repos()
     for repo in all_repos_with_access:
-        if login_user == repo.owner.login and not repo.private:
-            LOGGER.info("Adding vault to %s repository", repo.full_name)
+        if user.login == repo.owner.login and not repo.private:
+            LOGGER.info("Adding vault access to %s repository", repo.full_name)
+            vault_access_secrets: Dict[str, str] = __get_access_secrets(vault_ha_client, user.login, repo.name)
             __set_up_github_access_credential(
                 access_secrets=vault_access_secrets,
                 repo=repo.full_name,
@@ -43,7 +41,7 @@ def add_vault_access_to_github(vault_ha_client: VaultHaClient):
             )
 
 
-def __get_access_secrets(vault_ha_client: VaultHaClient) -> Dict[str, str]:
+def __get_access_secrets(vault_ha_client: VaultHaClient, github_user: str, repo_name: str) -> Dict[str, str]:
     """
     This function will get the access secrets.
     Args:
@@ -52,19 +50,21 @@ def __get_access_secrets(vault_ha_client: VaultHaClient) -> Dict[str, str]:
         dict: The access secrets.
     """
     client = vault_ha_client.hvac_client()
-    role_id = client.auth.approle.read_role_id(
-        role_name="github-master-controller",
-        mount_point="approle",
-    )[
-        "data"
-    ]["role_id"]
+    list_roles = client.list("auth/approle/role")["data"].get("keys", [])
+    approle_name = "github-master-controller"
 
-    secret_id = client.auth.approle.generate_secret_id(
-        role_name="github-master-controller",
-        mount_point="approle",
-    )[
-        "data"
-    ]["secret_id"]
+    repo_name_sanitized = repo_name.replace(".", "-")
+
+    if f"github-{github_user}-{repo_name_sanitized}" in list_roles:
+        approle_name = f"github-{github_user}-{repo_name_sanitized}"
+
+    LOGGER.info("Approle name: %s, for GitHub user: %s, repo: %s", approle_name, github_user, repo_name)
+
+    role_id = client.auth.approle.read_role_id(role_name=approle_name, mount_point="approle")["data"]["role_id"]
+
+    secret_id = client.auth.approle.generate_secret_id(role_name=approle_name, mount_point="approle")["data"][
+        "secret_id"
+    ]
 
     generate_certificate_response = client.secrets.pki.generate_certificate(
         name="vault_client_certificate",
