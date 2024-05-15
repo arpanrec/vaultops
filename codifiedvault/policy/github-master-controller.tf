@@ -20,6 +20,11 @@ data "vault_policy_document" "github-master-controller" {
     description  = "read pulumi credentials"
   }
   rule {
+    path         = "secret/data/external_services/ansible_galaxy"
+    capabilities = ["read"]
+    description  = "read ansible_galaxy credentials"
+  }
+  rule {
     path         = "auth/approle/role/github-master-controller/*"
     capabilities = ["create", "update", "read"]
   }
