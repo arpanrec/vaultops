@@ -1,8 +1,7 @@
 import base64
 from typing import Optional
 
-from github import Auth
-from github import Github
+from github import Auth, Github
 
 
 # pylint: disable=too-many-arguments,too-many-locals,too-many-return-statements,too-many-branches,too-many-statements

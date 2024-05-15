@@ -1,11 +1,11 @@
 import logging
 import os
+import tempfile
 from typing import Tuple
 
 import gnupg
 import requests
 from hvac.exceptions import InvalidPath  # type: ignore
-import tempfile
 
 from ..models.ha_client import VaultHaClient
 
@@ -25,14 +25,14 @@ def add_gpg_to_bot_github(vault_ha_client: VaultHaClient):
             path="external_services/github_bot",
         )
     except InvalidPath as e:
-        LOGGER.warning("Error reading secret version: %s", e)
-        LOGGER.info("GitHub secret not found, Skipping GitHub GPG setup")
+        LOGGER.warning("Error reading github_bot: %s", e)
+        LOGGER.info("github_bot secret not found, Skipping GitHub GPG setup")
         return
     except Exception as e:  # pylint: disable=broad-except
-        LOGGER.error("Error reading secret version: %s", e)
-        raise ValueError("Error reading secret version") from e
+        LOGGER.error("Error reading secret github_bot: %s", e)
+        raise ValueError("Error reading secret github_bot") from e
 
-    github_secret_version_response = secret_version_response["data"]["data"]
+    github_bot_response = secret_version_response["data"]["data"]
 
     required_keys = [
         "GH_BOT_API_TOKEN",
@@ -41,23 +41,24 @@ def add_gpg_to_bot_github(vault_ha_client: VaultHaClient):
     ]
 
     for key in required_keys:
-        if key not in github_secret_version_response:
+        if key not in github_bot_response:
             LOGGER.warning("%s not found in Vault GitHub secret, Skipping GitHub GPG setup", key)
             return
 
     fingerprint, ascii_armored_public_keys = get_gpg_public_key_from_private_key(
-        private_key=github_secret_version_response["ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY"],
-        passphrase=github_secret_version_response["ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE"],
+        private_key=github_bot_response["ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY"],
+        passphrase=github_bot_response["ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE"],
     )
 
     gpg_key_response = requests.post(
-        f"https://api.github.com/user/gpg_keys",
+        "https://api.github.com/user/gpg_keys",
         headers={
-            "Authorization": f"Bearer {github_secret_version_response['GH_BOT_API_TOKEN']}",
+            "Authorization": f"Bearer {github_bot_response['GH_BOT_API_TOKEN']}",
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
         },
         json={"armored_public_key": ascii_armored_public_keys, "name": f"GPG KEY - BOT - {fingerprint}"},
+        timeout=30,
     )
 
     if gpg_key_response.status_code == 422:
@@ -66,9 +67,8 @@ def add_gpg_to_bot_github(vault_ha_client: VaultHaClient):
             if error_msg["message"] in ["key_id already exists", "public_key already exists"]:
                 LOGGER.info("GPG key already exists in GitHub")
                 return
-            else:
-                LOGGER.error("Error adding GPG key to GitHub: %s", error_msg)
-                raise ValueError("Error adding GPG key to GitHub")
+            LOGGER.error("Error adding GPG key to GitHub: %s", error_msg)
+            raise ValueError("Error adding GPG key to GitHub")
     elif gpg_key_response.status_code != 201:
         LOGGER.error("Error adding GPG key to GitHub: %s", gpg_key_response.text)
         raise ValueError("Error adding GPG key to GitHub")

@@ -2,9 +2,9 @@ import ipaddress
 import os
 from typing import Any, Dict, Optional
 
+import yaml
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import yaml
 
 from .exit_hook import ExitHooks
 from .vault_secrets import VaultSecrets

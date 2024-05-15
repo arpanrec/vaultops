@@ -1,10 +1,7 @@
 import dataclasses
 from typing import Dict, List, Optional
 
-from cryptography.x509 import (
-    NameOID,
-    Certificate,
-)
+from cryptography.x509 import Certificate, NameOID
 from cryptography.x509.oid import ExtendedKeyUsageOID
 from pydantic import BaseModel, Field
 

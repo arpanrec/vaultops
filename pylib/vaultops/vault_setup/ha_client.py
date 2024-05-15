@@ -13,9 +13,6 @@ from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes
 from cryptography.hazmat.primitives.serialization import BestAvailableEncryption, pkcs12
 from cryptography.x509 import Certificate, load_pem_x509_certificate
 
-from .certificate import generate_x590_certificate
-from .private_key import generate_private_key
-from ..models.pki_private_key import GeneratedPrivateKey, PrivateKeyProperties
 from ..builder.vault_raft_node import build_raft_server_nodes_map
 from ..models.certificate import (
     CertificateDetails,
@@ -25,8 +22,11 @@ from ..models.certificate import (
     GeneratedCertificate,
 )
 from ..models.ha_client import VaultHaClient
+from ..models.pki_private_key import GeneratedPrivateKey, PrivateKeyProperties
 from ..models.vault_config import VaultConfig
 from ..models.vault_raft_node import VaultRaftNode
+from .certificate import generate_x590_certificate
+from .private_key import generate_private_key
 
 LOGGER = logging.getLogger(__name__)
 
