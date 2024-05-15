@@ -1,3 +1,11 @@
+## [1.8.1](https://github.com/arpanrec/vaultops/compare/1.8.0...1.8.1) (2024-05-15)
+
+
+### Bug Fixes
+
+* ansible_galaxy policy ([827d60b](https://github.com/arpanrec/vaultops/commit/827d60b29aa47bec703c31f9c6886247a0592168))
+* import-secrets ([b6a40ff](https://github.com/arpanrec/vaultops/commit/b6a40ff3c63774880eda5c989e53a76738391ec7))
+
 # [1.8.0](https://github.com/arpanrec/vaultops/compare/1.7.0...1.8.0) (2024-05-15)
 
 
