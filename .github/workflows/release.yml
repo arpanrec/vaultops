@@ -30,9 +30,9 @@ jobs:
                   exportEnv: false
                   exportToken: false
                   secrets: >-
-                      secret/data/external_services/github ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE ;
+                      secret/data/external_services/github_bot ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE ;
 
-                      secret/data/external_services/github ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY ;
+                      secret/data/external_services/github_bot ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY ;
 
             - name: Import GPG key
               id: import-gpg
