@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/arpanrec/vaultops/compare/1.9.0...1.9.1) (2024-05-15)
+
+
+### Bug Fixes
+
+* black ([a3b0afc](https://github.com/arpanrec/vaultops/commit/a3b0afc344774ede9245dae7ea5d94d6a242dee0))
+
 # [1.9.0](https://github.com/arpanrec/vaultops/compare/1.8.7...1.9.0) (2024-05-15)
 
 
