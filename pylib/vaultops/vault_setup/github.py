@@ -4,6 +4,7 @@ import logging
 from typing import Dict, List, Optional
 
 from github import Auth, Github
+from hvac.exceptions import InvalidPath  # type: ignore
 
 from ..models.ha_client import VaultHaClient
 from ..utils.github_variable import github_variable
@@ -20,10 +21,24 @@ def add_vault_access_to_github(vault_ha_client: VaultHaClient):
     LOGGER.info("Adding vault access to GitHub user repositories")
 
     client = vault_ha_client.hvac_client()
-    secret_version_response = client.secrets.kv.v2.read_secret_version(
-        path="external_services/github",
-    )
+    try:
+        secret_version_response = client.secrets.kv.v2.read_secret_version(
+            path="external_services/github",
+        )
+    except InvalidPath as e:
+        LOGGER.warning("Error reading secret version: %s", e)
+        LOGGER.info("GitHub secret not found, Skipping GitHub setup")
+        return
+    except Exception as e:  # pylint: disable=broad-except
+        LOGGER.error("Error reading secret version: %s", e)
+        raise ValueError("Error reading secret version") from e
+
     github_secret_version_response = secret_version_response["data"]["data"]
+
+    if "GH_PROD_API_TOKEN" not in github_secret_version_response:
+        LOGGER.warning("GH_PROD_API_TOKEN not found in GitHub secret, Skipping GitHub setup")
+        return
+
     LOGGER.debug("GitHub secret version response: %s", github_secret_version_response)
     auth = Auth.Token(github_secret_version_response["GH_PROD_API_TOKEN"])
     g = Github(auth=auth)

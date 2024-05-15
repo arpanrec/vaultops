@@ -9,6 +9,7 @@ from cryptography.x509 import Certificate, load_pem_x509_certificate
 
 from .external_services import update_external_services
 from .github import add_vault_access_to_github
+from .github_bot import add_gpg_to_bot_github
 from .raft_snapshot import take_raft_snapshot
 from ..builder.vault_config import build_vault_config
 from ..builder.vault_raft_node_hvac import create_raft_node_hvac
@@ -127,3 +128,6 @@ def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-s
 
     LOGGER.info("Adding vault access to GitHub user repositories")
     add_vault_access_to_github(vault_ha_client=vault_ha_client)
+
+    LOGGER.info("Add gpg key to bot github account")
+    add_gpg_to_bot_github(vault_ha_client=vault_ha_client)
