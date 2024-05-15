@@ -3,7 +3,7 @@ import os
 import tempfile
 from typing import Tuple
 
-import gnupg
+import gnupg  # type: ignore
 import requests
 from hvac.exceptions import InvalidPath  # type: ignore
 
@@ -65,7 +65,7 @@ def add_gpg_to_bot_github(vault_ha_client: VaultHaClient):
         res_json = gpg_key_response.json()
         for error_msg in res_json["errors"]:
             if error_msg["message"] in ["key_id already exists", "public_key already exists"]:
-                LOGGER.info("GPG key already exists in GitHub")
+                LOGGER.info("GPG key %s already exists in GitHub", fingerprint)
                 return
             LOGGER.error("Error adding GPG key to GitHub: %s", error_msg)
             raise ValueError("Error adding GPG key to GitHub")
@@ -97,9 +97,9 @@ def get_gpg_public_key_from_private_key(private_key: str, passphrase: str) -> Tu
             raise ValueError("multiple keys found")
 
         fingerprint = keys_list[0]["fingerprint"]
-        LOGGER.info("GPG fingerprint: %s", fingerprint)
+        LOGGER.debug("GPG fingerprint: %s", fingerprint)
 
         ascii_armored_public_keys = gpg.export_keys(fingerprint)
-        LOGGER.info("GPG public key: %s", ascii_armored_public_keys)
+        LOGGER.debug("GPG public key: %s", ascii_armored_public_keys)
 
         return fingerprint, ascii_armored_public_keys
