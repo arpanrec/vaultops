@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/arpanrec/vaultops/compare/1.8.7...1.9.0) (2024-05-15)
+
+
+### Features
+
+* github_bot ([d6e23b7](https://github.com/arpanrec/vaultops/commit/d6e23b79ccc27bc1b4f2f6287b475b7d3625090e))
+
 ## [1.8.7](https://github.com/arpanrec/vaultops/compare/1.8.6...1.8.7) (2024-05-15)
 
 
