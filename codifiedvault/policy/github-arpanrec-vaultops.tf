@@ -1,12 +1,8 @@
 data "vault_policy_document" "github-arpanrec-vaultops" {
   rule {
-    path         = "secret/data/external_services/github"
+    path         = "secret/data/external_services/github_bot"
     capabilities = ["read"]
     description  = "read github credentials"
-  }
-  rule {
-    path         = "auth/approle/role/github-arpanrec-vaultops/*"
-    capabilities = ["create", "update", "read"]
   }
 }
 
