@@ -1,3 +1,10 @@
+## [1.8.6](https://github.com/arpanrec/vaultops/compare/1.8.5...1.8.6) (2024-05-15)
+
+
+### Bug Fixes
+
+* Enable approle login ([99e75af](https://github.com/arpanrec/vaultops/commit/99e75afcb2da1a4d251b5064ac815053bbcac88d))
+
 ## [1.8.5](https://github.com/arpanrec/vaultops/compare/1.8.4...1.8.5) (2024-05-15)
 
 
