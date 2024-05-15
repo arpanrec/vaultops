@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/arpanrec/vaultops/compare/1.8.2...1.8.3) (2024-05-15)
+
+
+### Bug Fixes
+
+* github-arpanrec-vaultops ([0ee29c6](https://github.com/arpanrec/vaultops/commit/0ee29c66cff884cc630b74b6bf0f58441a18c36d))
+
 ## [1.8.2](https://github.com/arpanrec/vaultops/compare/1.8.1...1.8.2) (2024-05-15)
 
 
