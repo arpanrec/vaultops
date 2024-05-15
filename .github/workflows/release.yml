@@ -16,12 +16,32 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
+            - name: Import Secrets
+              id: import-secrets
+              uses: hashicorp/vault-action@v3
+              with:
+                  url: "${{ secrets.VAULT_ADDR }}"
+                  caCertificate: ${{ secrets.ROOT_CA_CERTIFICATE_CONTENT_BASE64 }}
+                  clientKey: ${{ secrets.VAULT_CLIENT_PRIVATE_KEY_CONTENT_BASE64 }}
+                  clientCertificate: ${{ secrets.VAULT_CLIENT_CERTIFICATE_CONTENT_BASE64 }}
+                  method: approle
+                  roleId: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+                  secretId: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+                  exportEnv: false
+                  exportToken: false
+                  secrets: >-
+                      secret/data/external_services/github ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE
+                        | ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE ;
+
+                      secret/data/external_services/github ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY
+                        | ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY ;
+
             - name: Import GPG key
               id: import-gpg
               uses: crazy-max/ghaction-import-gpg@v6
               with:
-                  gpg_private_key: "${{ secrets.ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY }}"
-                  passphrase: "${{ secrets.ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE }}"
+                  gpg_private_key: "${{ steps.import-secrets.outputs.ARPANREC_GITHUB_ACTIONS_GPG_PRIVATE_KEY }}"
+                  passphrase: "${{ steps.import-secrets.outputs.ARPANREC_GITHUB_ACTIONS_GPG_PASSPHRASE }}"
                   git_user_signingkey: true
                   git_commit_gpgsign: true
                   trust_level: 5
