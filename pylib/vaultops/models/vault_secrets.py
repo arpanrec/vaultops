@@ -1,6 +1,7 @@
 from typing import Dict, Union
 
 from pydantic import BaseModel, Field
+from ..models.github_secrets import GitHubDetails
 
 
 class VaultSecrets(BaseModel):
@@ -23,3 +24,4 @@ class VaultSecrets(BaseModel):
     external_services: Dict[str, Union[str, bool, int, Dict]] = Field(
         default={}, description="The external services required for the Vault HA cluster."
     )
+    github_details: GitHubDetails = Field(description="The GitHub details required for interacting with GitHub.")

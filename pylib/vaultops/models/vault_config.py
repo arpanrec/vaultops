@@ -26,8 +26,7 @@ class VaultConfig(BaseSettings):
     vaultops_config_dir_path: str
     vaultops_update_run_id: bool = False
 
-    _secret_file_name: str = "vault_secrets.yml"
-    _vault_servers_file_name = "vault_servers.yml"
+    __vault_prerequisites_file_name = "vault_prerequisites.yml"
     _run_id_start_file_name = "run_id_start.txt"
     _run_id_end_file_name = "run_id_end.txt"
     _vault_unseal_keys_file_name = "vault_unseal_keys.yml"
@@ -101,9 +100,9 @@ class VaultConfig(BaseSettings):
             Dict[str, VaultServer]: The Vault servers.
         """
 
-        vault_servers_file_path = os.path.join(self.vaultops_config_dir_path, self._vault_servers_file_name)
+        vault_servers_file_path = os.path.join(self.vaultops_config_dir_path, self.__vault_prerequisites_file_name)
         with open(vault_servers_file_path, "r", encoding="utf-8") as vault_servers_file:
-            servers_dict = yaml.safe_load(vault_servers_file)
+            servers_dict = yaml.safe_load(vault_servers_file)["vault_servers"]
 
         return {name: VaultServer.model_validate(server_dict) for name, server_dict in servers_dict.items()}
 
@@ -212,6 +211,6 @@ class VaultConfig(BaseSettings):
             str: The secrets stored in the file.
         """
 
-        secret_file_path = os.path.join(self.vaultops_config_dir_path, self._secret_file_name)
+        secret_file_path = os.path.join(self.vaultops_config_dir_path, self.__vault_prerequisites_file_name)
         with open(secret_file_path, "r", encoding="utf-8") as secrets_file:
-            return VaultSecrets.model_validate(yaml.safe_load(secrets_file))
+            return VaultSecrets.model_validate(yaml.safe_load(secrets_file)["vault_secrets"])

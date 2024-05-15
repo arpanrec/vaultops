@@ -123,8 +123,8 @@ def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-s
     LOGGER.info("Taking a raft snapshot")
     take_raft_snapshot(vault_ha_client=vault_ha_client, vault_config=vault_config)
 
-    LOGGER.info("Adding vault access to GitHub user repositories")
-    add_vault_access_to_github(vault_ha_client=vault_ha_client)
-
-    LOGGER.info("Add gpg key to bot github account")
-    add_gpg_to_bot_github(vault_ha_client=vault_ha_client)
+    # LOGGER.info("Adding vault access to GitHub user repositories")
+    # add_vault_access_to_github(vault_ha_client=vault_ha_client)
+    #
+    # LOGGER.info("Add gpg key to bot GitHub account")
+    # add_gpg_to_bot_github(vault_ha_client=vault_ha_client)
