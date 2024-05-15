@@ -3,7 +3,7 @@ line-length = 120
 
 [tool.poetry]
 name = "vaultops"
-version = "1.8.6"
+version = "1.8.7"
 description = "Install Hashicorp Vault"
 authors = ["arpan <arpan.rec@gmail.com>"]
 license = "GLWTS"

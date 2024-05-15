@@ -1,3 +1,10 @@
+## [1.8.7](https://github.com/arpanrec/vaultops/compare/1.8.6...1.8.7) (2024-05-15)
+
+
+### Bug Fixes
+
+* fetch-depth ([7587248](https://github.com/arpanrec/vaultops/commit/758724855a8a33b4f3897b0c8e5975e0c78c782d))
+
 ## [1.8.6](https://github.com/arpanrec/vaultops/compare/1.8.5...1.8.6) (2024-05-15)
 
 
