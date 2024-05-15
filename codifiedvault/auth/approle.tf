@@ -39,3 +39,23 @@ resource "vault_approle_auth_backend_role" "minio-kes" {
   token_num_uses     = 0
   # role_id            = "minio-kes"
 }
+
+resource "vault_approle_auth_backend_role" "github-arpanrec-arpanrec-nebula" {
+  depends_on         = [vault_auth_backend.approle]
+  backend            = vault_auth_backend.approle.path
+  role_name          = "github-arpanrec-arpanrec-nebula"
+  token_policies     = ["default", "github-arpanrec-arpanrec-nebula", "default_login"]
+  secret_id_ttl      = 0
+  secret_id_num_uses = 0
+  token_num_uses     = 0
+}
+
+resource "vault_approle_auth_backend_role" "github-arpanrec-arpanrec-vaultops" {
+  depends_on         = [vault_auth_backend.approle]
+  backend            = vault_auth_backend.approle.path
+  role_name          = "github-arpanrec-arpanrec-vaultops"
+  token_policies     = ["default", "github-arpanrec-arpanrec-vaultops", "default_login"]
+  secret_id_ttl      = 0
+  secret_id_num_uses = 0
+  token_num_uses     = 0
+}
