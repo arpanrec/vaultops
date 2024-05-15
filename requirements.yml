@@ -23,7 +23,7 @@ collections:
     - name: arpanrec.nebula
       type: git
       source: https://github.com/arpanrec/arpanrec.nebula.git
-      version: 5.3.1
+      version: 5.7.1
     - name: community.hashi_vault
       type: git
       source: https://github.com/ansible-collections/community.hashi_vault.git
