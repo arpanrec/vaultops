@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/arpanrec/vaultops/compare/1.9.1...1.10.0) (2024-05-15)
+
+
+### Features
+
+* Add logging for GPG key existence in GitHub ([9b7d405](https://github.com/arpanrec/vaultops/commit/9b7d405f85366a0f813c6bd70ddb07883b0ad0e2))
+
 ## [1.9.1](https://github.com/arpanrec/vaultops/compare/1.9.0...1.9.1) (2024-05-15)
 
 
