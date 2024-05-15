@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/arpanrec/vaultops/compare/1.7.0...1.8.0) (2024-05-15)
+
+
+### Features
+
+* github setup ([#1](https://github.com/arpanrec/vaultops/issues/1)) ([d10e6b2](https://github.com/arpanrec/vaultops/commit/d10e6b2a32f6c98c27deaabac28158c7c9674cc4))
+
 # [1.7.0](https://github.com/arpanrec/vaultops/compare/1.6.0...1.7.0) (2024-05-13)
 
 
