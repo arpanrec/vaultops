@@ -1,7 +1,7 @@
 import base64
 import json
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from github import Auth, Github
 
@@ -33,15 +33,18 @@ def add_vault_access_to_github(vault_ha_client: VaultHaClient):
     for repo in all_repos_with_access:
         if user.login == repo.owner.login and not repo.private:
             LOGGER.info("Adding vault access to %s repository", repo.full_name)
-            vault_access_secrets: Dict[str, str] = __get_access_secrets(vault_ha_client, user.login, repo.name)
-            __set_up_github_access_credential(
-                access_secrets=vault_access_secrets,
-                repo=repo.full_name,
-                pat=github_secret_version_response["GH_PROD_API_TOKEN"],
+            vault_access_secrets: Optional[Dict[str, str]] = __get_access_secrets(
+                vault_ha_client, user.login, repo.name
             )
+            if vault_access_secrets:
+                __set_up_github_access_credential(
+                    access_secrets=vault_access_secrets,
+                    repo=repo.full_name,
+                    pat=github_secret_version_response["GH_PROD_API_TOKEN"],
+                )
 
 
-def __get_access_secrets(vault_ha_client: VaultHaClient, github_user: str, repo_name: str) -> Dict[str, str]:
+def __get_access_secrets(vault_ha_client: VaultHaClient, github_user: str, repo_name: str) -> Optional[Dict[str, str]]:
     """
     This function will get the access secrets.
     Args:
@@ -51,12 +54,12 @@ def __get_access_secrets(vault_ha_client: VaultHaClient, github_user: str, repo_
     """
     client = vault_ha_client.hvac_client()
     list_roles = client.list("auth/approle/role")["data"].get("keys", [])
-    approle_name = "github-master-controller"
-
     repo_name_sanitized = repo_name.replace(".", "-")
+    approle_name = f"github-{github_user}-{repo_name_sanitized}"
 
-    if f"github-{github_user}-{repo_name_sanitized}" in list_roles:
-        approle_name = f"github-{github_user}-{repo_name_sanitized}"
+    if approle_name not in list_roles:
+        LOGGER.info("Approle name: %s, for GitHub user: %s, repo: %s, not found", approle_name, github_user, repo_name)
+        return None
 
     LOGGER.info("Approle name: %s, for GitHub user: %s, repo: %s", approle_name, github_user, repo_name)
 
