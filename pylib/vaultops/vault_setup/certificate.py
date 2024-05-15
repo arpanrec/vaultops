@@ -38,10 +38,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric.types import (
-    CertificatePublicKeyTypes,
-    PrivateKeyTypes,
-)
+from cryptography.hazmat.primitives.asymmetric.types import CertificatePublicKeyTypes, PrivateKeyTypes
 from cryptography.x509 import (
     AuthorityKeyIdentifier,
     BasicConstraints,
@@ -67,11 +64,7 @@ from cryptography.x509 import (
 from cryptography.x509.oid import ExtendedKeyUsageOID
 
 from .. import VaultOpsRetryError
-from ..models.certificate import (
-    CertificateDetails,
-    CertificateProperties,
-    GeneratedCertificate,
-)
+from ..models.certificate import CertificateDetails, CertificateProperties, GeneratedCertificate
 
 
 def _is_property_set(properties: Dict[str, Any], property_name: str) -> bool:

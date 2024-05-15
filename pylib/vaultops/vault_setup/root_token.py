@@ -9,17 +9,13 @@ import time
 from typing import Any, Dict, List, Optional, Union
 
 import hvac  # type: ignore
-from hvac.exceptions import (  # type: ignore
-    InternalServerError,
-    InvalidPath,
-    InvalidRequest,
-)
+from hvac.exceptions import InternalServerError, InvalidPath, InvalidRequest  # type: ignore
 from prettytable import PrettyTable
 
 from .. import VaultOpsRetryError
+from ..models.ha_client import VaultHaClient
 from ..models.root_token import VaultNewRootToken
 from ..models.vault_config import VaultConfig
-from ..models.ha_client import VaultHaClient
 from ..models.vault_raft_node_hvac import VaultRaftNodeHvac
 
 LOGGER = logging.getLogger(__name__)

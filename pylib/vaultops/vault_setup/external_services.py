@@ -2,8 +2,8 @@ from typing import Dict, Union
 
 import hvac  # type: ignore
 
-from ..models.vault_config import VaultConfig
 from ..models.ha_client import VaultHaClient
+from ..models.vault_config import VaultConfig
 
 
 def update_external_services(vault_ha_client: VaultHaClient, vault_config: VaultConfig) -> None:

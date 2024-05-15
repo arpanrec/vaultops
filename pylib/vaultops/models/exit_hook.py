@@ -1,5 +1,5 @@
 import sys
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 
 class ExitHooks:

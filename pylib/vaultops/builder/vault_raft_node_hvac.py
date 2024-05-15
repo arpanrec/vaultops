@@ -4,10 +4,10 @@ from typing import Dict
 from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes
 from cryptography.x509 import Certificate
 
-from .vault_raft_node import build_raft_server_nodes_map
 from ..models.vault_config import VaultConfig
 from ..models.vault_raft_node import VaultRaftNode
 from ..models.vault_raft_node_hvac import VaultRaftNodeHvac
+from .vault_raft_node import build_raft_server_nodes_map
 
 LOGGER = logging.getLogger(__name__)
 

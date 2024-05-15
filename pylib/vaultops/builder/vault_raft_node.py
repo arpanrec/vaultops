@@ -1,5 +1,5 @@
 import ipaddress
-from typing import Dict, Set, Optional
+from typing import Dict, Optional, Set
 
 from ..models.vault_config import VaultConfig
 from ..models.vault_node import VaultNode

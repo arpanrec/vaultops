@@ -9,17 +9,17 @@ from pydantic import ConfigDict, Field, computed_field
 from requests.sessions import HTTPAdapter
 from urllib3 import Retry
 
+from ..vault_setup.certificate import generate_x590_certificate
+from ..vault_setup.private_key import generate_private_key
 from .certificate import (
-    GeneratedCertificate,
-    CertificateProperties,
     CertificateDetails,
-    CertificateDetailsKeyUsage,
     CertificateDetailsBasicConstraints,
+    CertificateDetailsKeyUsage,
+    CertificateProperties,
+    GeneratedCertificate,
 )
 from .pki_private_key import GeneratedPrivateKey, PrivateKeyProperties
 from .vault_raft_node import VaultRaftNode
-from ..vault_setup.certificate import generate_x590_certificate
-from ..vault_setup.private_key import generate_private_key
 
 
 class VaultRaftNodeHvac(VaultRaftNode):

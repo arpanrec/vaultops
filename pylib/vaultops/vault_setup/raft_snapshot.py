@@ -1,7 +1,7 @@
 import logging
 
-from ..models.vault_config import VaultConfig
 from ..models.ha_client import VaultHaClient
+from ..models.vault_config import VaultConfig
 
 LOGGER = logging.getLogger(__name__)
 

@@ -19,11 +19,12 @@ It performs the following tasks:
 This module is intended to be executed as the main entry point of the installation process.
 """
 
+import argparse
 import logging
+import os
 import sys
 import time
-import argparse
-import os
+
 from . import VaultOpsRetryError, VaultOpsSafeExit, vault_setup
 
 IS_DEBUG: bool = False

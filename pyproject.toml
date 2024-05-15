@@ -36,6 +36,7 @@ types-requests = "2.31.0.20240406"
 types-jmespath = "1.0.2.20240106"
 ansible-dev-tools = "24.5.0"
 pyright = "1.1.361"
+isort = "^5.13.2"
 
 [build-system]
 requires = ["poetry-core"]
