@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/arpanrec/vaultops/compare/1.10.0...1.11.0) (2024-05-15)
+
+
+### Features
+
+* Update README.md ([c388d6c](https://github.com/arpanrec/vaultops/commit/c388d6cbdb5e30f1bd35142de2e6dea52852109e))
+
 # [1.10.0](https://github.com/arpanrec/vaultops/compare/1.9.1...1.10.0) (2024-05-15)
 
 
