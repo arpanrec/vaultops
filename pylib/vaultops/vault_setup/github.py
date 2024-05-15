@@ -75,6 +75,7 @@ def __get_access_secrets(vault_ha_client: VaultHaClient) -> Dict[str, str]:
     issues_ca_list: List[str] = generate_certificate_response["data"]["ca_chain"]
     cert_full_chain: List[str] = [generate_certificate_response["data"]["certificate"]] + issues_ca_list
     vault_access_secrets = {
+        "VAULT_ADDR": f"https://{vault_ha_client.vault_ha_hostname}:{vault_ha_client.vault_ha_port}",
         "VAULT_APPROLE_ROLE_ID": role_id,
         "VAULT_APPROLE_SECRET_ID": secret_id,
         "VAULT_CLIENT_PRIVATE_KEY_CONTENT_BASE64": base64.b64encode(
@@ -83,6 +84,9 @@ def __get_access_secrets(vault_ha_client: VaultHaClient) -> Dict[str, str]:
         "ROOT_CA_CERTIFICATE_CONTENT_BASE64": base64.b64encode(("\n".join(cert_full_chain)).encode("utf-8")).decode(
             "utf-8"
         ),
+        "VAULT_CLIENT_CERTIFICATE_CONTENT_BASE64": base64.b64encode(
+            ("\n".join(cert_full_chain)).encode("utf-8")
+        ).decode("utf-8"),
     }
     LOGGER.debug("Vault access secrets: %s", json.dumps(vault_access_secrets, indent=4))
     return vault_access_secrets
