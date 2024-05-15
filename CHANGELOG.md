@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/arpanrec/vaultops/compare/1.8.1...1.8.2) (2024-05-15)
+
+
+### Bug Fixes
+
+* pre repo roles ([03313ed](https://github.com/arpanrec/vaultops/commit/03313ed0eb303dbbe94c777968ad9713e48f401a))
+
 ## [1.8.1](https://github.com/arpanrec/vaultops/compare/1.8.0...1.8.1) (2024-05-15)
 
 
