@@ -32,6 +32,7 @@ from vaultops.builder.vault_config import build_vault_config
 from vaultops.builder.vault_raft_node import build_raft_server_nodes_map
 from vaultops.models.vault_config import VaultConfig
 from vaultops.models.vault_raft_node import VaultRaftNode
+from vaultops.models.vault_secrets import VaultSecrets
 from vaultops.models.vault_server import VaultServer
 from vaultops.vault_setup import VaultHaClient, create_ha_client
 
@@ -97,20 +98,23 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group(self.ansible_vault_node_servers_group_name)
         ansible_inventory_dict = self._read_config_data(path)
         vault_config: VaultConfig = build_vault_config(ansible_inventory_dict, vaultops_update_run_id=False)
+        vault_secrets: VaultSecrets = vault_config.vault_secrets
 
         vault_vm_server_ssh_user_known_hosts_file = os.path.join(
             vault_config.vaultops_tmp_dir_path, "UserKnownHostsFile"
         )
-        self.inventory.set_variable("all", "root_ca_key_passphrase", vault_config.vault_secrets.root_ca_key_password)
-        self.inventory.set_variable("all", "root_ca_key_pem", vault_config.vault_secrets.root_ca_key_pem)
-        self.inventory.set_variable("all", "root_ca_cert_pem", vault_config.vault_secrets.root_ca_cert_pem)
+        self.inventory.set_variable(
+            "all", "root_ca_key_passphrase", vault_secrets.root_pki_details.root_ca_key_password
+        )
+        self.inventory.set_variable("all", "root_ca_key_pem", vault_secrets.root_pki_details.root_ca_key_pem)
+        self.inventory.set_variable("all", "root_ca_cert_pem", vault_secrets.root_pki_details.root_ca_cert_pem)
         self.inventory.set_variable("all", "vaultops_tmp_dir_path", vault_config.vaultops_tmp_dir_path)
         self.inventory.set_variable(
             "all", "vault_vm_server_ssh_user_known_hosts_file", vault_vm_server_ssh_user_known_hosts_file
         )
         rsa_root_ca_key = serialization.load_pem_private_key(
-            data=vault_config.vault_secrets.root_ca_key_pem.encode("utf-8"),
-            password=vault_config.vault_secrets.root_ca_key_password.encode("utf-8"),
+            data=vault_secrets.root_pki_details.root_ca_key_pem.encode("utf-8"),
+            password=vault_secrets.root_pki_details.root_ca_key_password.encode("utf-8"),
             backend=default_backend(),
         )
 

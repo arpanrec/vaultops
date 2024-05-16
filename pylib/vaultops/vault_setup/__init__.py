@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from typing import Dict
@@ -35,24 +36,25 @@ def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-s
     args:
         inventory_file_name: str - inventory file name
     """
-    vault_config: VaultConfig = build_vault_config(inventory_file_name, vaultops_update_run_id=True)
+
+    vault_config: VaultConfig = build_vault_config(inventory_file_name, vaultops_update_run_id=False)
 
     LOGGER.info("Loading root ca key")
     rsa_root_ca_key: PrivateKeyTypes = serialization.load_pem_private_key(
-        vault_config.vault_secrets.root_ca_key_pem.encode("utf-8"),
-        password=vault_config.vault_secrets.root_ca_key_password.encode("utf-8"),
+        vault_config.vault_secrets.root_pki_details.root_ca_key_pem.encode("utf-8"),
+        password=vault_config.vault_secrets.root_pki_details.root_ca_key_password.encode("utf-8"),
         backend=default_backend(),
     )
 
     LOGGER.info("Loading root ca certificate")
     rsa_root_ca_cert: Certificate = load_pem_x509_certificate(
-        vault_config.vault_secrets.root_ca_cert_pem.encode("utf-8"), default_backend()
+        vault_config.vault_secrets.root_pki_details.root_ca_cert_pem.encode("utf-8"), default_backend()
     )
 
     vault_root_ca_cert_file: str = os.path.join(vault_config.vaultops_tmp_dir_path, "vault_root_ca_cert.pem")
     LOGGER.info("Writing root ca certificate to %s", vault_root_ca_cert_file)
     with open(vault_root_ca_cert_file, "w", encoding="utf-8") as f:
-        f.write(vault_config.vault_secrets.root_ca_cert_pem)
+        f.write(vault_config.vault_secrets.root_pki_details.root_ca_cert_pem)
 
     all_raft_nodes: Dict[str, VaultRaftNodeHvac] = create_raft_node_hvac(
         vault_config=vault_config,
@@ -126,5 +128,5 @@ def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-s
     LOGGER.info("Adding vault access to GitHub user repositories")
     add_vault_access_to_github(vault_ha_client=vault_ha_client)
 
-    LOGGER.info("Add gpg key to bot github account")
+    LOGGER.info("Add gpg key to bot GitHub account")
     add_gpg_to_bot_github(vault_ha_client=vault_ha_client)

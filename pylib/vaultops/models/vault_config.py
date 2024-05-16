@@ -26,8 +26,8 @@ class VaultConfig(BaseSettings):
     vaultops_config_dir_path: str
     vaultops_update_run_id: bool = False
 
-    _secret_file_name: str = "vault_secrets.yml"
-    _vault_servers_file_name = "vault_servers.yml"
+    __vault_prerequisites_file_name = "vault_prerequisites.yml"
+    __vault_prerequisites: Dict[str, Any] = {}
     _run_id_start_file_name = "run_id_start.txt"
     _run_id_end_file_name = "run_id_end.txt"
     _vault_unseal_keys_file_name = "vault_unseal_keys.yml"
@@ -63,11 +63,15 @@ class VaultConfig(BaseSettings):
             self.vaultops_config_dir_path, "tfstate", f"terraform-{_run_id_start}.tfstate"
         )
 
-        self._run_id = _run_id_start + 1
+        if self.vaultops_update_run_id:
+            self._run_id = _run_id_start + 1
+        else:
+            self._run_id = _run_id_start
 
         self._next_tf_state_file = os.path.join(
             self.vaultops_config_dir_path, "tfstate", f"terraform-{self._run_id}.tfstate"
         )
+
         self._raft_snapshot_file = os.path.join(
             self.vaultops_config_dir_path, "vault-raft-snapshot", f"vault-raft-snapshot-{self._run_id}.snap"
         )
@@ -77,6 +81,12 @@ class VaultConfig(BaseSettings):
 
         if self._run_id > 2 and self.get_vault_unseal_keys() is None:
             raise ValueError("Vault unseal keys file not found, but run ID is greater than 2")
+
+        __vault_prerequisites = os.path.join(self.vaultops_config_dir_path, self.__vault_prerequisites_file_name)
+        print(f"Reading vault prerequisites from {__vault_prerequisites}")
+        with open(__vault_prerequisites, "r", encoding="utf-8") as f:
+            pre_requisites = yaml.safe_load(f)
+            self.__vault_prerequisites.update(pre_requisites)
 
         if self.vaultops_update_run_id:
             with open(_run_id_start_file, "w", encoding="utf-8") as f:
@@ -101,11 +111,10 @@ class VaultConfig(BaseSettings):
             Dict[str, VaultServer]: The Vault servers.
         """
 
-        vault_servers_file_path = os.path.join(self.vaultops_config_dir_path, self._vault_servers_file_name)
-        with open(vault_servers_file_path, "r", encoding="utf-8") as vault_servers_file:
-            servers_dict = yaml.safe_load(vault_servers_file)
-
-        return {name: VaultServer.model_validate(server_dict) for name, server_dict in servers_dict.items()}
+        return {
+            name: VaultServer.model_validate(server_dict)
+            for name, server_dict in self.__vault_prerequisites["vault_servers"].items()
+        }
 
     @computed_field(return_type=str)  # type: ignore
     @property
@@ -209,9 +218,8 @@ class VaultConfig(BaseSettings):
         Returns the secrets stored in the file.
 
         Returns:
-            str: The secrets stored in the file.
+            VaultSecrets: The secrets stored in the file.
         """
 
-        secret_file_path = os.path.join(self.vaultops_config_dir_path, self._secret_file_name)
-        with open(secret_file_path, "r", encoding="utf-8") as secrets_file:
-            return VaultSecrets.model_validate(yaml.safe_load(secrets_file))
+        vault_secrets = self.__vault_prerequisites["vault_secrets"]
+        return VaultSecrets.model_validate(vault_secrets)

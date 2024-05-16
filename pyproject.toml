@@ -27,15 +27,15 @@ python-gnupg = "^0.5.2"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "1.10.0"
-pylint = "3.1.0"
-ansible-lint = { version = "24.2.3", markers = 'platform_system != "Windows"' }
-poetry-plugin-export = "1.7.1"
+pylint = "3.2.0"
+ansible-lint = { version = "24.5.0", markers = 'platform_system != "Windows"' }
+poetry-plugin-export = "1.8.0"
 detect-secrets = "1.5.0"
 types-pyyaml = "6.0.12.20240311"
 types-requests = "2.31.0.20240406"
 types-jmespath = "1.0.2.20240106"
 ansible-dev-tools = "24.5.0"
-pyright = "1.1.361"
+pyright = "1.1.363"
 isort = "^5.13.2"
 
 [build-system]

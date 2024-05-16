@@ -1,9 +1,12 @@
+import logging
 from typing import Dict, Union
 
 import hvac  # type: ignore
 
 from ..models.ha_client import VaultHaClient
 from ..models.vault_config import VaultConfig
+
+LOGGER = logging.getLogger(__name__)
 
 
 def update_external_services(vault_ha_client: VaultHaClient, vault_config: VaultConfig) -> None:
@@ -14,15 +17,16 @@ def update_external_services(vault_ha_client: VaultHaClient, vault_config: Vault
     """
 
     client: hvac.Client = vault_ha_client.hvac_client()
-    external_services: Dict[str, Union[str, bool, int, Dict]] = vault_config.vault_secrets.external_services
 
-    if external_services is None or not isinstance(external_services, dict):
+    vault_secrets: Dict[str, Union[str, bool, int, Dict]] = vault_config.vault_secrets.model_dump()
+
+    if vault_secrets is None or not isinstance(vault_secrets, dict):
         raise ValueError("Invalid value for external service secrets, it should be instance of dict")
 
-    if len(external_services) == 0:
+    if len(vault_secrets) == 0:
         return
 
-    __create_update_external_services(client, "external_services", external_services)
+    __create_update_external_services(client, "vault_secrets", vault_secrets)
 
 
 def __create_update_external_services(client: hvac.Client, key: str, value: Dict) -> None:
