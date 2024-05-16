@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/arpanrec/vaultops/compare/1.11.0...1.12.0) (2024-05-16)
+
+
+### Features
+
+* back to single file ([dca084b](https://github.com/arpanrec/vaultops/commit/dca084b46a403cd69d5cdb8b58c56d1e3533348a))
+
 # [1.11.0](https://github.com/arpanrec/vaultops/compare/1.10.0...1.11.0) (2024-05-15)
 
 
