@@ -1,7 +1,6 @@
 from typing import Dict, Union
 
 from pydantic import BaseModel, Field
-from ..models.github_secrets import GitHubDetails
 
 
 class VaultSecrets(BaseModel):
