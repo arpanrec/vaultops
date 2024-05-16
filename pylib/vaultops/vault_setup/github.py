@@ -1,9 +1,12 @@
 import base64
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any, Union
 
+import hvac  # type: ignore
 from github import Auth, Github
+from github.AuthenticatedUser import AuthenticatedUser
+from github.NamedUser import NamedUser
 from hvac.exceptions import InvalidPath  # type: ignore
 
 from ..models.ha_client import VaultHaClient
@@ -21,42 +24,44 @@ def add_vault_access_to_github(vault_ha_client: VaultHaClient):
     LOGGER.info("Adding vault access to GitHub user repositories")
 
     client = vault_ha_client.hvac_client()
+    github_prod_vault_secret: Dict[str, Any]
+    github_bot_user: Optional[Union[NamedUser, AuthenticatedUser]] = _get_bot_account(client)
     try:
-        secret_version_response = client.secrets.kv.v2.read_secret_version(
+        github_prod_vault_secret = client.secrets.kv.v2.read_secret_version(
             path="vault_secrets/github_details/github_prod",
         )
     except InvalidPath as e:
-        LOGGER.warning("Error reading secret version: %s", e)
-        LOGGER.info("GitHub secret not found, Skipping GitHub setup")
+        LOGGER.info("github_prod secret not found, Skipping GitHub setup, error: %s", e)
         return
     except Exception as e:  # pylint: disable=broad-except
-        LOGGER.error("Error reading secret version: %s", e)
-        raise ValueError("Error reading secret version") from e
+        raise ValueError("Error reading secret vault_secrets/github_details/github_prod") from e
 
-    github_secret_version_response = secret_version_response["data"]["data"]
+    github_prod_secret_dict = github_prod_vault_secret["data"]["data"]
 
-    if "GH_PROD_API_TOKEN" not in github_secret_version_response:
+    if "GH_PROD_API_TOKEN" not in github_prod_secret_dict:
         LOGGER.warning("GH_PROD_API_TOKEN not found in GitHub secret, Skipping GitHub setup")
         return
 
-    LOGGER.debug("GitHub secret version response: %s", github_secret_version_response)
-    auth = Auth.Token(github_secret_version_response["GH_PROD_API_TOKEN"])
+    LOGGER.debug("GitHub secret version response: %s", github_prod_secret_dict)
+    auth = Auth.Token(github_prod_secret_dict["GH_PROD_API_TOKEN"])
     g = Github(auth=auth)
     user = g.get_user()
     LOGGER.info("GitHub user: %s", user.login)
     all_repos_with_access = user.get_repos()
     for repo in all_repos_with_access:
         if user.login == repo.owner.login and not repo.private:
-            LOGGER.info("Adding vault access to %s repository", repo.full_name)
             vault_access_secrets: Optional[Dict[str, str]] = __get_access_secrets(
                 vault_ha_client, user.login, repo.name
             )
             if vault_access_secrets:
                 __set_up_github_access_credential(
                     access_secrets=vault_access_secrets,
-                    repo=repo.full_name,
-                    pat=github_secret_version_response["GH_PROD_API_TOKEN"],
+                    repository_full_name=repo.full_name,
+                    pat=github_prod_secret_dict["GH_PROD_API_TOKEN"],
                 )
+                if github_bot_user:
+                    LOGGER.info("Adding bot as collaborator to %s repository", repo.full_name)
+                    repo.add_to_collaborators(github_bot_user.login, permission="admin")
 
 
 def __get_access_secrets(vault_ha_client: VaultHaClient, github_user: str, repo_name: str) -> Optional[Dict[str, str]]:
@@ -73,10 +78,11 @@ def __get_access_secrets(vault_ha_client: VaultHaClient, github_user: str, repo_
     approle_name = f"github-{github_user}-{repo_name_sanitized}"
 
     if approle_name not in list_roles:
-        LOGGER.info("Approle name: %s, for GitHub user: %s, repo: %s, not found", approle_name, github_user, repo_name)
+        LOGGER.info("No approle found for GitHub user: %s, repo: %s", github_user, repo_name)
         return None
 
-    LOGGER.info("Approle name: %s, for GitHub user: %s, repo: %s", approle_name, github_user, repo_name)
+    LOGGER.info("Approle found for GitHub user: %s, repo: %s", github_user, repo_name)
+    LOGGER.info("Adding vault access to %s repository", repo_name)
 
     role_id = client.auth.approle.read_role_id(role_name=approle_name, mount_point="approle")["data"]["role_id"]
 
@@ -110,10 +116,31 @@ def __get_access_secrets(vault_ha_client: VaultHaClient, github_user: str, repo_
     return vault_access_secrets
 
 
-def __set_up_github_access_credential(access_secrets: Dict[str, str], repo: str, pat: str):
+def __set_up_github_access_credential(access_secrets: Dict[str, str], repository_full_name: str, pat: str):
     """
     This function will set up the GitHub repository.
     """
     for key, value in access_secrets.items():
-        LOGGER.debug("Setting up GitHub repository: %s, key: %s", repo, key)
-        github_variable(pat=pat, unencrypted_value=value, repository=repo, name=key)
+        LOGGER.debug("Setting up GitHub repository: %s, key: %s", repository_full_name, key)
+        github_variable(pat=pat, unencrypted_value=value, repository=repository_full_name, name=key)
+
+
+def _get_bot_account(client: hvac.Client) -> Optional[Union[NamedUser, AuthenticatedUser]]:
+    try:
+        secret_version_response = client.secrets.kv.v2.read_secret_version(
+            path="vault_secrets/github_details/github_bot",
+        )
+
+        if "GH_BOT_API_TOKEN" not in secret_version_response["data"]["data"]:
+            LOGGER.warning("GH_BOT_API_TOKEN not found in GitHub bot secret, Skipping GitHub setup")
+            return None
+
+        auth = Auth.Token(secret_version_response["data"]["data"]["GH_BOT_API_TOKEN"])
+        g = Github(auth=auth)
+        return g.get_user()
+
+    except InvalidPath as e:
+        LOGGER.info("github_bot secret not found, error: %s", e)
+        return None
+    except Exception as e:  # pylint: disable=broad-except
+        raise ValueError("Error reading secret vault_secrets/github_details/github_bot") from e
