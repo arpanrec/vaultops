@@ -218,14 +218,6 @@ class VaultConfig(BaseSettings):
             VaultSecrets: The secrets stored in the file.
         """
 
-        # vault_secrets = self.__vault_prerequisites['vault_secrets']
+        vault_secrets = self.__vault_prerequisites["vault_secrets"]
 
-        # return VaultSecrets.model_validate(**vault_secrets)
-
-        # __vault_prerequisites = os.path.join(self.vaultops_config_dir_path, "vault_secrets.yml")
-        # with open(__vault_prerequisites, "r", encoding="utf-8") as f:
-        #     vault_secrets = yaml.safe_load(f)
-        #     return VaultSecrets(**vault_secrets)
-        secret_file_path = os.path.join(self.vaultops_config_dir_path, "vault_secrets.yml")
-        with open(secret_file_path, "r", encoding="utf-8") as secrets_file:
-            return VaultSecrets.model_validate(yaml.safe_load(secrets_file))
+        return VaultSecrets.model_validate(vault_secrets)
