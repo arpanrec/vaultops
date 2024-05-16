@@ -1,11 +1,11 @@
 data "vault_policy_document" "github-arpanrec-arpanrec-nebula" {
   rule {
-    path         = "secret/data/external_services/github_bot"
+    path         = "secret/data/vault_secrets/github_details/github_bot"
     capabilities = ["read"]
     description  = "read github credentials"
   }
   rule {
-    path         = "secret/data/external_services/ansible_galaxy"
+    path         = "secret/data/vault_secrets/external_services/ansible_galaxy"
     capabilities = ["read"]
     description  = "read ansible_galaxy credentials"
   }
