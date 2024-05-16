@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/arpanrec/vaultops/compare/1.13.0...1.14.0) (2024-05-16)
+
+
+### Features
+
+* ansible_inventory ([22e7a11](https://github.com/arpanrec/vaultops/commit/22e7a11c1fff8e38c8e744ac4ce8f04e7fdb7f37))
+
 # [1.13.0](https://github.com/arpanrec/vaultops/compare/1.12.2...1.13.0) (2024-05-16)
 
 
