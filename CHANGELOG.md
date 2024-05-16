@@ -1,3 +1,10 @@
+## [1.12.2](https://github.com/arpanrec/vaultops/compare/1.12.1...1.12.2) (2024-05-16)
+
+
+### Bug Fixes
+
+* vault_config ([7b49822](https://github.com/arpanrec/vaultops/commit/7b49822448488f112b19027b1e89a575d1cb626e))
+
 ## [1.12.1](https://github.com/arpanrec/vaultops/compare/1.12.0...1.12.1) (2024-05-16)
 
 
