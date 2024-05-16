@@ -1,7 +1,8 @@
 import logging
-from typing import Dict, Union
+from typing import Dict, Union, Optional, List
 
 import hvac  # type: ignore
+from hvac.exceptions import InvalidPath
 
 from ..models.ha_client import VaultHaClient
 from ..models.vault_config import VaultConfig
@@ -25,7 +26,7 @@ def update_external_services(vault_ha_client: VaultHaClient, vault_config: Vault
 
     if len(vault_secrets) == 0:
         return
-
+    __delete_existing_vault_secrets(client, "vault_secrets")
     __create_update_external_services(client, "vault_secrets", vault_secrets)
 
 
@@ -61,3 +62,32 @@ def __create_update_external_services(client: hvac.Client, key: str, value: Dict
 
     for sub_key, sub_value in to_be_created_or_updated_next.items():
         __create_update_external_services(client, f"{key}/{sub_key}", sub_value)
+
+
+def __delete_existing_vault_secrets(client: hvac.Client, key: str) -> None:
+    """Delete existing vault secrets.
+    Args:
+        client (hvac.Client): Vault client.
+        key (str): Vault key.
+    """
+
+    list_secrets: Optional[List[str]] = None
+
+    try:
+        client.secrets.kv.v2.delete_metadata_and_all_versions(
+            mount_point="secret",
+            path=key,
+        )
+        list_secrets = client.secrets.kv.v2.list_secrets(mount_point="secret", path=key)["data"].get("keys", [])
+    except InvalidPath as e:
+        LOGGER.exception("Vault secret %s not found, skipping deletion", key, exc_info=e)
+    except Exception as e:  # pylint: disable=broad-except
+        raise ValueError(f"Error deleting secret {key}") from e
+
+    LOGGER.info("Deleted secret %s", key)
+
+    if list_secrets is None:
+        return
+
+    for secret in list_secrets:
+        __delete_existing_vault_secrets(client, f"{key}/{secret}")
