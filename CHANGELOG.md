@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/arpanrec/vaultops/compare/1.15.0...1.15.1) (2024-05-16)
+
+
+### Bug Fixes
+
+* isort ([0c563bc](https://github.com/arpanrec/vaultops/commit/0c563bcba0c57e3a314791dfa39795592943cb7d))
+
 # [1.15.0](https://github.com/arpanrec/vaultops/compare/1.14.1...1.15.0) (2024-05-16)
 
 
