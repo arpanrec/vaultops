@@ -1,7 +1,7 @@
 import base64
 import json
 import logging
-from typing import Dict, List, Optional, Any, Union
+from typing import Any, Dict, List, Optional, Union
 
 import hvac  # type: ignore
 from github import Auth, Github

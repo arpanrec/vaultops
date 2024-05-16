@@ -25,9 +25,9 @@ from ..models.ha_client import VaultHaClient
 from ..models.pki_private_key import GeneratedPrivateKey, PrivateKeyProperties
 from ..models.vault_config import VaultConfig
 from ..models.vault_raft_node import VaultRaftNode
+from ..models.vault_secrets import VaultSecrets
 from .certificate import generate_x590_certificate
 from .private_key import generate_private_key
-from ..models.vault_secrets import VaultSecrets
 
 LOGGER = logging.getLogger(__name__)
 
