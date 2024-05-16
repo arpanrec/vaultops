@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/arpanrec/vaultops/compare/1.12.2...1.13.0) (2024-05-16)
+
+
+### Features
+
+* Remove unnecessary capabilities from vault policy files ([4768e38](https://github.com/arpanrec/vaultops/commit/4768e386ed182b34ba2b323f192a92063d615786))
+
 ## [1.12.2](https://github.com/arpanrec/vaultops/compare/1.12.1...1.12.2) (2024-05-16)
 
 
