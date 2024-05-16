@@ -26,8 +26,8 @@ class VaultConfig(BaseSettings):
     vaultops_config_dir_path: str
     vaultops_update_run_id: bool = False
 
-    __vault_prerequisites_file_name = "vault_prerequisites.yml"
-    __vault_prerequisites: Dict[str, Any] = {}
+    __vault_config_file_name = "vault_config.yml"
+    __vault_config_dict: Dict[str, Any] = {}
     _run_id_start_file_name = "run_id_start.txt"
     _run_id_end_file_name = "run_id_end.txt"
     _vault_unseal_keys_file_name = "vault_unseal_keys.yml"
@@ -82,11 +82,10 @@ class VaultConfig(BaseSettings):
         if self._run_id > 2 and self.get_vault_unseal_keys() is None:
             raise ValueError("Vault unseal keys file not found, but run ID is greater than 2")
 
-        __vault_prerequisites = os.path.join(self.vaultops_config_dir_path, self.__vault_prerequisites_file_name)
-        print(f"Reading vault prerequisites from {__vault_prerequisites}")
-        with open(__vault_prerequisites, "r", encoding="utf-8") as f:
+        __vault_config_file = os.path.join(self.vaultops_config_dir_path, self.__vault_config_file_name)
+        with open(__vault_config_file, "r", encoding="utf-8") as f:
             pre_requisites = yaml.safe_load(f)
-            self.__vault_prerequisites.update(pre_requisites)
+            self.__vault_config_dict.update(pre_requisites)
 
         if self.vaultops_update_run_id:
             with open(_run_id_start_file, "w", encoding="utf-8") as f:
@@ -113,7 +112,7 @@ class VaultConfig(BaseSettings):
 
         return {
             name: VaultServer.model_validate(server_dict)
-            for name, server_dict in self.__vault_prerequisites["vault_servers"].items()
+            for name, server_dict in self.__vault_config_dict["vault_servers"].items()
         }
 
     @computed_field(return_type=str)  # type: ignore
@@ -221,5 +220,5 @@ class VaultConfig(BaseSettings):
             VaultSecrets: The secrets stored in the file.
         """
 
-        vault_secrets = self.__vault_prerequisites["vault_secrets"]
+        vault_secrets = self.__vault_config_dict["vault_secrets"]
         return VaultSecrets.model_validate(vault_secrets)
