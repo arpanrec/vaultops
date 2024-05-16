@@ -1,8 +1,8 @@
 import logging
-from typing import Dict, Union, Optional, List
+from typing import Dict, List, Optional, Union
 
 import hvac  # type: ignore
-from hvac.exceptions import InvalidPath
+from hvac.exceptions import InvalidPath  # type: ignore
 
 from ..models.ha_client import VaultHaClient
 from ..models.vault_config import VaultConfig
@@ -10,7 +10,7 @@ from ..models.vault_config import VaultConfig
 LOGGER = logging.getLogger(__name__)
 
 
-def update_external_services(vault_ha_client: VaultHaClient, vault_config: VaultConfig) -> None:
+def update_vault_secrets(vault_ha_client: VaultHaClient, vault_config: VaultConfig) -> None:
     """Update external service secrets in Vault.
     Args:
         vault_ha_client (VaultHaClient): Vault HA client.

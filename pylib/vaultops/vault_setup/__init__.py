@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from typing import Dict
@@ -14,7 +13,6 @@ from ..models.ha_client import VaultHaClient
 from ..models.vault_config import VaultConfig
 from .admin_user import add_admin_user_policy
 from .codifiedvault import terraform_apply
-from .external_services import update_external_services
 from .find_ready import find_ready
 from .github import add_vault_access_to_github
 from .github_bot import add_gpg_to_bot_github
@@ -26,6 +24,7 @@ from .raft_snapshot import take_raft_snapshot
 from .root_token import VaultNewRootToken, regenerate_root_token, vault_token_revoke
 from .unseal import unseal_vault
 from .vault_pki_root_ca import setup_root_pki
+from .vault_secrets import update_vault_secrets
 
 LOGGER = logging.getLogger(__name__)
 
@@ -120,7 +119,7 @@ def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-s
         vault_token_revoke(vault_client=vault_ha_client)
 
     LOGGER.info("Updating external service secrets")
-    update_external_services(vault_ha_client=vault_ha_client, vault_config=vault_config)
+    update_vault_secrets(vault_ha_client=vault_ha_client, vault_config=vault_config)
 
     LOGGER.info("Taking a raft snapshot")
     take_raft_snapshot(vault_ha_client=vault_ha_client, vault_config=vault_config)
