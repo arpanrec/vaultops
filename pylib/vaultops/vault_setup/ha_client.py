@@ -27,6 +27,7 @@ from ..models.vault_config import VaultConfig
 from ..models.vault_raft_node import VaultRaftNode
 from .certificate import generate_x590_certificate
 from .private_key import generate_private_key
+from ..models.vault_secrets import VaultSecrets
 
 LOGGER = logging.getLogger(__name__)
 
@@ -47,9 +48,11 @@ def create_ha_client(
         VaultHaClient: An instance of the VaultHaClient class.
     """
 
+    vault_secrets: VaultSecrets = vault_config.vault_secrets
+
     if not rsa_root_ca_cert:
         rsa_root_ca_cert = load_pem_x509_certificate(
-            vault_config.vault_secrets.root_ca_cert_pem.encode("utf-8"), default_backend()
+            vault_secrets.root_pki_details.root_ca_cert_pem.encode("utf-8"), default_backend()
         )
 
     all_san: Set[str] = {vault_config.vault_ha_hostname_san_entry}
@@ -92,20 +95,20 @@ def create_ha_client(
         cert=_vault_ha_rsa_client_certificate.certificate,
         cas=[rsa_root_ca_cert],
         encryption_algorithm=BestAvailableEncryption(
-            vault_config.vault_secrets.vault_admin_client_cert_p12_passphrase.encode("utf-8")
+            vault_secrets.vault_admin_userpass_details.vault_admin_client_cert_p12_passphrase.encode("utf-8")
         ),
     )
 
-    admin_user: str = vault_config.vault_secrets.vault_admin_user
-    admin_password: str = vault_config.vault_secrets.vault_admin_password
-    userpass_mount: str = vault_config.vault_secrets.vault_admin_userpass_mount_path
-    policy_name: str = vault_config.vault_secrets.vault_admin_policy_name
+    admin_user: str = vault_secrets.vault_admin_userpass_details.vault_admin_user
+    admin_password: str = vault_secrets.vault_admin_userpass_details.vault_admin_password
+    userpass_mount: str = vault_secrets.vault_admin_userpass_details.vault_admin_userpass_mount_path
+    policy_name: str = vault_secrets.vault_admin_userpass_details.vault_admin_policy_name
     client_cert_pem: str = str(_vault_ha_rsa_client_certificate.certificate_full_chain)
     client_key_pem: str = str(_vault_ha_rsa_client_private_key.private_key_content)
-    vault_ha_hostname: str = vault_config.vault_secrets.vault_ha_hostname
-    vault_ha_port: int = vault_config.vault_secrets.vault_ha_port
+    vault_ha_hostname: str = vault_secrets.vault_ha_hostname
+    vault_ha_port: int = vault_secrets.vault_ha_port
     client_cert_p12_base64: str = base64.b64encode(_vault_ha_rsa_client_p12_certificate).decode("utf-8")
-    root_ca_cert_pem: str = vault_config.vault_secrets.root_ca_cert_pem
+    root_ca_cert_pem: str = vault_secrets.root_pki_details.root_ca_cert_pem
 
     ha_client: VaultHaClient = VaultHaClient(
         admin_user=admin_user,
@@ -117,7 +120,7 @@ def create_ha_client(
         vault_ha_hostname=vault_ha_hostname,
         vault_ha_port=vault_ha_port,
         client_cert_p12_base64=client_cert_p12_base64,
-        client_cert_p12_passphrase=vault_config.vault_secrets.vault_admin_client_cert_p12_passphrase,
+        client_cert_p12_passphrase=vault_secrets.vault_admin_userpass_details.vault_admin_client_cert_p12_passphrase,
         root_ca_cert_pem=root_ca_cert_pem,
     )
 

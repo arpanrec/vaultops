@@ -23,7 +23,7 @@ def add_vault_access_to_github(vault_ha_client: VaultHaClient):
     client = vault_ha_client.hvac_client()
     try:
         secret_version_response = client.secrets.kv.v2.read_secret_version(
-            path="external_services/github",
+            path="vault_secrets/github_details/github_prod",
         )
     except InvalidPath as e:
         LOGGER.warning("Error reading secret version: %s", e)

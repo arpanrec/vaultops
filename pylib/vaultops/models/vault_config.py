@@ -63,7 +63,10 @@ class VaultConfig(BaseSettings):
             self.vaultops_config_dir_path, "tfstate", f"terraform-{_run_id_start}.tfstate"
         )
 
-        self._run_id = _run_id_start + 1
+        if self.vaultops_update_run_id:
+            self._run_id = _run_id_start + 1
+        else:
+            self._run_id = _run_id_start
 
         self._next_tf_state_file = os.path.join(
             self.vaultops_config_dir_path, "tfstate", f"terraform-{self._run_id}.tfstate"
@@ -219,5 +222,4 @@ class VaultConfig(BaseSettings):
         """
 
         vault_secrets = self.__vault_prerequisites["vault_secrets"]
-
         return VaultSecrets.model_validate(vault_secrets)
