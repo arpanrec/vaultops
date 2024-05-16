@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/arpanrec/vaultops/compare/1.14.1...1.15.0) (2024-05-16)
+
+
+### Features
+
+* update_vault_secrets ([41d9f59](https://github.com/arpanrec/vaultops/commit/41d9f59fcef472d8702eae464fda7dd0bc0c9062))
+
 ## [1.14.1](https://github.com/arpanrec/vaultops/compare/1.14.0...1.14.1) (2024-05-16)
 
 
