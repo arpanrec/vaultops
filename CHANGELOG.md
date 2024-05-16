@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/arpanrec/vaultops/compare/1.12.0...1.12.1) (2024-05-16)
+
+
+### Bug Fixes
+
+* GH_BOT_API_TOKEN ([49e12fd](https://github.com/arpanrec/vaultops/commit/49e12fd7395e68864a2d0a3a29ac4917a384af6d))
+
 # [1.12.0](https://github.com/arpanrec/vaultops/compare/1.11.0...1.12.0) (2024-05-16)
 
 
