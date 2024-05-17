@@ -1,3 +1,10 @@
+## [1.15.2](https://github.com/arpanrec/vaultops/compare/1.15.1...1.15.2) (2024-05-17)
+
+
+### Bug Fixes
+
+* allow_any_name in server certificate ([955d55f](https://github.com/arpanrec/vaultops/commit/955d55f75332223a909f5265edf48e2a579c1cb7))
+
 ## [1.15.1](https://github.com/arpanrec/vaultops/compare/1.15.0...1.15.1) (2024-05-16)
 
 
