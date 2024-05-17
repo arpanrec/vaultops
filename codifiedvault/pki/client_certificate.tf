@@ -15,7 +15,7 @@ resource "vault_pki_secret_backend_role" "client_certificate" {
   code_signing_flag        = false
   email_protection_flag    = false
   key_type                 = "rsa"
-  key_bits                 = 2048
+  key_bits                 = 4096
   key_usage                = ["DigitalSignature", "KeyAgreement", "KeyEncipherment"]
   ext_key_usage            = ["ExtKeyUsageClientAuth"]
   allow_ip_sans            = true
