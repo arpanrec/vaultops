@@ -1,3 +1,12 @@
+## [1.15.5](https://github.com/arpanrec/vaultops/compare/1.15.4...1.15.5) (2024-05-18)
+
+
+### Bug Fixes
+
+* Import Secrets ([e7ea2c6](https://github.com/arpanrec/vaultops/commit/e7ea2c6fa90dfcc72300393bdafd18d0050a10f8))
+* mount_point ([c26f0ef](https://github.com/arpanrec/vaultops/commit/c26f0efa1825ccbec0bfbbf8de6ea46bfc373c93))
+* Update logging message for missing vault secret ([cc71e11](https://github.com/arpanrec/vaultops/commit/cc71e11fe5800dea2068f53f857b41b5530f1b30))
+
 ## [1.15.4](https://github.com/arpanrec/vaultops/compare/1.15.3...1.15.4) (2024-05-18)
 
 
