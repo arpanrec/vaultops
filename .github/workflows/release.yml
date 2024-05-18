@@ -33,11 +33,11 @@ jobs:
                   exportEnv: false
                   exportToken: false
                   secrets: >-
-                      secret/data/vault_secrets/github_details/github_bot GH_BOT_GPG_PASSPHRASE ;
+                      vault-secrets/data/vault_secrets/github_details/github_bot GH_BOT_GPG_PASSPHRASE ;
 
-                      secret/data/vault_secrets/github_details/github_bot GH_BOT_GPG_PRIVATE_KEY ;
+                      vault-secrets/data/vault_secrets/github_details/github_bot GH_BOT_GPG_PRIVATE_KEY ;
 
-                      secret/data/vault_secrets/github_details/github_bot GH_BOT_API_TOKEN ;
+                      vault-secrets/data/vault_secrets/github_details/github_bot GH_BOT_API_TOKEN ;
 
             - name: Import GPG key
               id: import-gpg
