@@ -1,3 +1,10 @@
+## [1.15.4](https://github.com/arpanrec/vaultops/compare/1.15.3...1.15.4) (2024-05-18)
+
+
+### Bug Fixes
+
+* update policy ([0aaa07f](https://github.com/arpanrec/vaultops/commit/0aaa07f91a4a893ef41b3fab52a2740aa78280b3))
+
 ## [1.15.3](https://github.com/arpanrec/vaultops/compare/1.15.2...1.15.3) (2024-05-18)
 
 
