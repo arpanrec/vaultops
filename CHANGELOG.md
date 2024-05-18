@@ -1,3 +1,10 @@
+## [1.15.3](https://github.com/arpanrec/vaultops/compare/1.15.2...1.15.3) (2024-05-18)
+
+
+### Bug Fixes
+
+* vault-secrets mount point ([e5f4a9e](https://github.com/arpanrec/vaultops/commit/e5f4a9e56a1d1d09c3d4fb3d0746ec95e08c09a2))
+
 ## [1.15.2](https://github.com/arpanrec/vaultops/compare/1.15.1...1.15.2) (2024-05-17)
 
 
