@@ -29,6 +29,7 @@ def add_vault_access_to_github(vault_ha_client: VaultHaClient):
     try:
         github_prod_vault_secret = client.secrets.kv.v2.read_secret_version(
             path="vault_secrets/github_details/github_prod",
+            mount_point="vault-secrets",
         )
     except InvalidPath as e:
         LOGGER.info("github_prod secret not found, Skipping GitHub setup, error: %s", e)
@@ -129,6 +130,7 @@ def _get_bot_account(client: hvac.Client) -> Optional[Union[NamedUser, Authentic
     try:
         secret_version_response = client.secrets.kv.v2.read_secret_version(
             path="vault_secrets/github_details/github_bot",
+            mount_point="vault-secrets",
         )
 
         if "GH_BOT_API_TOKEN" not in secret_version_response["data"]["data"]:

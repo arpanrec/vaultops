@@ -23,6 +23,7 @@ def add_gpg_to_bot_github(vault_ha_client: VaultHaClient):
     try:
         secret_version_response = client.secrets.kv.v2.read_secret_version(
             path="vault_secrets/github_details/github_bot",
+            mount_point="vault-secrets",
         )
     except InvalidPath as e:
         LOGGER.warning("Error reading github_bot: %s", e)
