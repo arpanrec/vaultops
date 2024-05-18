@@ -55,7 +55,7 @@ def __create_update_external_services(client: hvac.Client, key: str, value: Dict
 
     if len(to_be_created_or_updated_in_this_key) > 0:
         client.secrets.kv.v2.create_or_update_secret(
-            mount_point="secret",
+            mount_point="vault-secrets",
             path=key,
             secret=to_be_created_or_updated_in_this_key,
         )
@@ -75,10 +75,10 @@ def __delete_existing_vault_secrets(client: hvac.Client, key: str) -> None:
 
     try:
         client.secrets.kv.v2.delete_metadata_and_all_versions(
-            mount_point="secret",
+            mount_point="vault-secrets",
             path=key,
         )
-        list_secrets = client.secrets.kv.v2.list_secrets(mount_point="secret", path=key)["data"].get("keys", [])
+        list_secrets = client.secrets.kv.v2.list_secrets(mount_point="vault-secrets", path=key)["data"].get("keys", [])
     except InvalidPath as e:
         LOGGER.exception("Vault secret %s not found, skipping deletion", key, exc_info=e)
     except Exception as e:  # pylint: disable=broad-except
