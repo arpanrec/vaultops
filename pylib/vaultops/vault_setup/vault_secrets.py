@@ -80,7 +80,7 @@ def __delete_existing_vault_secrets(client: hvac.Client, key: str) -> None:
         )
         list_secrets = client.secrets.kv.v2.list_secrets(mount_point="vault-secrets", path=key)["data"].get("keys", [])
     except InvalidPath as e:
-        LOGGER.exception("Vault secret %s not found, skipping deletion", key, exc_info=e)
+        LOGGER.info("Vault secret %s not found, skipping deletion, err: %s", key, str(e))
     except Exception as e:  # pylint: disable=broad-except
         raise ValueError(f"Error deleting secret {key}") from e
 
