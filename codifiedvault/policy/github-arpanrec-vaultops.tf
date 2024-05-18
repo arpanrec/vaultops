@@ -1,6 +1,6 @@
 data "vault_policy_document" "github-arpanrec-vaultops" {
   rule {
-    path         = "secret/data/vault_secrets/github_details/github_bot"
+    path         = "vault-secrets/data/vault_secrets/github_details/github_bot"
     capabilities = ["read"]
     description  = "read github credentials"
   }

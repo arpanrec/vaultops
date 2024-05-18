@@ -5,12 +5,12 @@ data "vault_policy_document" "gitlab-master-controller" {
     description  = "Allow to create TLS client certificats for vault server"
   }
   rule {
-    path         = "secret/data/external_services/gitlab"
+    path         = "vault-secrets/data/external_services/gitlab"
     capabilities = ["read"]
     description  = "read gitlab credentials"
   }
   rule {
-    path         = "secret/data/external_services/terraform_cloud"
+    path         = "vault-secrets/data/external_services/terraform_cloud"
     capabilities = ["read"]
     description  = "read terraform_cloud credentials"
   }

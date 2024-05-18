@@ -5,22 +5,22 @@ data "vault_policy_document" "github-master-controller" {
     description  = "Allow to create TLS client certificats for vault server"
   }
   rule {
-    path         = "secret/data/external_services/github"
+    path         = "vault-secrets/data/external_services/github"
     capabilities = ["read"]
     description  = "read github credentials"
   }
   rule {
-    path         = "secret/data/external_services/terraform_cloud"
+    path         = "vault-secrets/data/external_services/terraform_cloud"
     capabilities = ["read"]
     description  = "read terraform_cloud credentials"
   }
   rule {
-    path         = "secret/data/external_services/pulumi"
+    path         = "vault-secrets/data/external_services/pulumi"
     capabilities = ["read"]
     description  = "read pulumi credentials"
   }
   rule {
-    path         = "secret/data/external_services/ansible_galaxy"
+    path         = "vault-secrets/data/external_services/ansible_galaxy"
     capabilities = ["read"]
     description  = "read ansible_galaxy credentials"
   }
