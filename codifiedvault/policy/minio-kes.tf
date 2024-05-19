@@ -1,18 +1,18 @@
 data "vault_policy_document" "minio-kes" {
   rule {
-    path         = "pki/issue/vault_client_certificate"
-    capabilities = ["create", "update", "read"]
-    description  = "Allow to create TLS client certificats for vault server"
+    path         = "kv/minio/kes/kms/*"
+    capabilities = ["create", "read", "delete", "update", "list"]
+    description  = "All operations on the minio/kes/kms path"
   }
   rule {
-    path         = "minio-kes/data/*"
+    path         = "secret/data/minio/kes/kms/*"
     capabilities = ["create", "read"]
-    description  = "read write credentials"
+    description  = "read and write credentials"
   }
   rule {
-    path         = "minio-kes/metadata/*"
+    path         = "secret/metadata/minio/kes/kms/*"
     capabilities = ["list", "delete"]
-    description  = "delete credentials"
+    description  = "delete and list credentials"
   }
 }
 
