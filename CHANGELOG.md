@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/arpanrec/vaultops/compare/1.0.0...1.0.1) (2024-05-21)
+
+
+### Bug Fixes
+
+* update kv.tf options version to 1 ([d8c369b](https://github.com/arpanrec/vaultops/commit/d8c369bd46d72dd162b3874beb03965a421695a3))
+
 # 1.0.0 (2024-05-19)
 
 
