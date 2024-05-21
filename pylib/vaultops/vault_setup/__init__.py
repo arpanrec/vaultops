@@ -14,8 +14,6 @@ from ..models.vault_config import VaultConfig
 from .admin_user import add_admin_user_policy
 from .codifiedvault import terraform_apply
 from .find_ready import find_ready
-from .github import add_vault_access_to_github
-from .github_bot import add_gpg_to_bot_github
 from .ha_client import create_ha_client
 from .initialize import initialize_vault
 from .raft_node_hvac import VaultRaftNodeHvac, update_client_with_root_token
@@ -29,7 +27,8 @@ from .vault_secrets import update_vault_secrets
 LOGGER = logging.getLogger(__name__)
 
 
-def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-statements
+# pylint: disable=too-many-statements
+def vault_setup(inventory_file_name: str) -> VaultHaClient:
     """
     Setup vault
     args:
@@ -124,8 +123,4 @@ def vault_setup(inventory_file_name: str) -> None:  # pylint: disable=too-many-s
     LOGGER.info("Taking a raft snapshot")
     take_raft_snapshot(vault_ha_client=vault_ha_client, vault_config=vault_config)
 
-    LOGGER.info("Adding vault access to GitHub user repositories")
-    add_vault_access_to_github(vault_ha_client=vault_ha_client)
-
-    LOGGER.info("Add gpg key to bot GitHub account")
-    add_gpg_to_bot_github(vault_ha_client=vault_ha_client)
+    return vault_ha_client
