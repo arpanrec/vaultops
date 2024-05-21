@@ -3,6 +3,6 @@ resource "vault_mount" "kv" {
   type        = "kv"
   description = "kv"
   options = {
-    version              = 1
+    version = 1
   }
 }
