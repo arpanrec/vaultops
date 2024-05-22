@@ -8,6 +8,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 def setup_github(vault_ha_client: VaultHaClient):
+    """
+    Setup GitHub access for the bot and users.
+    """
 
     LOGGER.info("Adding vault access to GitHub user repositories")
     add_vault_access_to_github(vault_ha_client=vault_ha_client)
