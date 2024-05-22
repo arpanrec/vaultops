@@ -61,6 +61,10 @@ def __create_update_external_services(client: hvac.Client, key: str, value: Dict
         )
 
     for sub_key, sub_value in to_be_created_or_updated_next.items():
+        if sub_key.endswith("/"):
+            sub_key = sub_key[:-1]
+        if sub_key.startswith("/"):
+            sub_key = sub_key[1:]
         __create_update_external_services(client, f"{key}/{sub_key}", sub_value)
 
 
@@ -90,4 +94,9 @@ def __delete_existing_vault_secrets(client: hvac.Client, key: str) -> None:
         return
 
     for secret in list_secrets:
+        if secret.endswith("/"):
+            secret = secret[:-1]
+        if secret.startswith("/"):
+            secret = secret[1:]
+
         __delete_existing_vault_secrets(client, f"{key}/{secret}")
