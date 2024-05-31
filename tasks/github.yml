@@ -15,16 +15,30 @@
 
 - name: Vaultops | Downstream | github.com | Set Token
   ansible.builtin.set_fact:
-      pv_tmp_vault_downstream_github_login_token: "{{ pv_tmp_vault_downstream_github_com_login_res.\
+      pv_tmp_vault_downstream_github_vault_token: "{{ pv_tmp_vault_downstream_github_com_login_res.\
           login.auth.client_token }}"
 
-- name: Vaultops | Downstream | github.com | Get
+- name: Vaultops | Downstream | github.com | Get Github Production Secrets
   community.hashi_vault.vault_kv2_get:
       url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      path: external_services/github
-      token: "{{ pv_tmp_vault_downstream_github_login_token }}"
+      path: "vault_secrets/github_details/github_prod"
+      engine_mount_point: "vault-secrets"
+      token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
   register: vault_github_external_secrets
+  environment:
+      VAULT_CACERT: "{{ vault_ha_client.vault_root_ca_cert_file }}"
+      VAULT_CLIENT_CERT: "{{ vault_ha_client.vault_client_cert_file }}"
+      VAULT_CLIENT_KEY: "{{ vault_ha_client.vault_client_key_file }}"
+
+- name: Vaultops | Downstream | github.com | Get Github Bot Secrets
+  community.hashi_vault.vault_kv2_get:
+      url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
+      path: "vault_secrets/github_details/github_bot"
+      engine_mount_point: "vault-secrets"
+      token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
+      validate_certs: true
+  register: vault_github_bot_external_secrets
   environment:
       VAULT_CACERT: "{{ vault_ha_client.vault_root_ca_cert_file }}"
       VAULT_CLIENT_CERT: "{{ vault_ha_client.vault_client_cert_file }}"
@@ -39,7 +53,7 @@
       body_format: json
       headers:
           "Accept": "application/vnd.github.v3+json"
-          "authorization": "Bearer {{ vault_github_external_secrets.data.data.GH_BOT_API_TOKEN }}"
+          "authorization": "Bearer {{ vault_github_bot_external_secrets.data.data.GH_BOT_API_TOKEN }}"
   register: github_action_bot_username_res
 
 - name: Vaultops | Downstream | github.com | Set Token
@@ -51,7 +65,7 @@
   community.hashi_vault.vault_read:
       url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
       path: auth/approle/role/github-master-controller/role-id
-      token: "{{ pv_tmp_vault_downstream_github_login_token }}"
+      token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
   register: github_master_controller_role_id
   environment:
@@ -63,7 +77,7 @@
   community.hashi_vault.vault_write:
       url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
       path: "auth/approle/role/github-master-controller/secret-id"
-      token: "{{ pv_tmp_vault_downstream_github_login_token }}"
+      token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
   register: github_master_controller_secret_id
   environment:
@@ -75,7 +89,7 @@
   community.hashi_vault.vault_write:
       url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
       path: pki/issue/vault_client_certificate
-      token: "{{ pv_tmp_vault_downstream_github_login_token }}"
+      token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
       data:
           common_name: "{{ vault_ha_client.vault_ha_hostname }}"
@@ -89,6 +103,7 @@
   community.general.github_repo:
       access_token: "{{ gh_prod_api_token }}"
       name: github-master-controller
+      organization: easyiac
       description: "Github master Controller"
       private: false
       state: present

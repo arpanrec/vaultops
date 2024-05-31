@@ -79,10 +79,10 @@ def __get_access_secrets(vault_ha_client: VaultHaClient, github_user: str, repo_
     approle_name = f"github-{github_user}-{repo_name_sanitized}"
 
     if approle_name not in list_roles:
-        LOGGER.info("No approle found for GitHub user: %s, repo: %s", github_user, repo_name)
+        LOGGER.info("No AppRole found for GitHub user: %s, repo: %s", github_user, repo_name)
         return None
 
-    LOGGER.info("Approle found for GitHub user: %s, repo: %s", github_user, repo_name)
+    LOGGER.info("AppRole found for GitHub user: %s, repo: %s", github_user, repo_name)
     LOGGER.info("Adding vault access to %s repository", repo_name)
 
     role_id = client.auth.approle.read_role_id(role_name=approle_name, mount_point="approle")["data"]["role_id"]
