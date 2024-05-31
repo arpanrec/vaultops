@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/arpanrec/vaultops/compare/1.0.1...1.1.0) (2024-05-31)
+
+
+### Features
+
+* Setup GitHub access for the bot and users. Feature/vaultops ([#3](https://github.com/arpanrec/vaultops/issues/3)) ([776036b](https://github.com/arpanrec/vaultops/commit/776036b806c8dc23ba12ecf6ce01f11e4d2fe1e4))
+
 ## [1.0.1](https://github.com/arpanrec/vaultops/compare/1.0.0...1.0.1) (2024-05-21)
 
 
