@@ -1,7 +1,7 @@
 ---
 - name: Vaultops | Downstream | github.com | Login
   community.hashi_vault.vault_login:
-      url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
+      url: https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}
       auth_method: userpass
       username: "{{ vault_ha_client.admin_user }}"
       password: "{{ vault_ha_client.admin_password }}"
@@ -15,14 +15,13 @@
 
 - name: Vaultops | Downstream | github.com | Set Token
   ansible.builtin.set_fact:
-      pv_tmp_vault_downstream_github_vault_token: "{{ pv_tmp_vault_downstream_github_com_login_res.\
-          login.auth.client_token }}"
+      pv_tmp_vault_downstream_github_vault_token: "{{ pv_tmp_vault_downstream_github_com_login_res.login.auth.client_token }}"
 
 - name: Vaultops | Downstream | github.com | Get Github Production Secrets
   community.hashi_vault.vault_kv2_get:
-      url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      path: "vault_secrets/github_details/github_prod"
-      engine_mount_point: "vault-secrets"
+      url: https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}
+      path: vault_secrets/github_details/github_prod
+      engine_mount_point: vault-secrets
       token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
   register: vault_github_external_secrets
@@ -33,9 +32,9 @@
 
 - name: Vaultops | Downstream | github.com | Get Github Bot Secrets
   community.hashi_vault.vault_kv2_get:
-      url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      path: "vault_secrets/github_details/github_bot"
-      engine_mount_point: "vault-secrets"
+      url: https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}
+      path: vault_secrets/github_details/github_bot
+      engine_mount_point: vault-secrets
       token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
   register: vault_github_bot_external_secrets
@@ -46,14 +45,14 @@
 
 - name: Vaultops | Downstream | github.com | Get bot account username
   ansible.builtin.uri:
-      url: "https://api.github.com/user"
+      url: https://api.github.com/user
       method: GET
       validate_certs: true
       return_content: true
       body_format: json
       headers:
-          "Accept": "application/vnd.github.v3+json"
-          "authorization": "Bearer {{ vault_github_bot_external_secrets.data.data.GH_BOT_API_TOKEN }}"
+          Accept: application/vnd.github.v3+json
+          authorization: Bearer {{ vault_github_bot_external_secrets.data.data.GH_BOT_API_TOKEN }}
   register: github_action_bot_username_res
 
 - name: Vaultops | Downstream | github.com | Set Token
@@ -63,7 +62,7 @@
 
 - name: Vaultops | Downstream | github.com | Get role-id
   community.hashi_vault.vault_read:
-      url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
+      url: https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}
       path: auth/approle/role/github-master-controller/role-id
       token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
@@ -75,8 +74,8 @@
 
 - name: Vaultops | Downstream | github.com | Get secret-id
   community.hashi_vault.vault_write:
-      url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
-      path: "auth/approle/role/github-master-controller/secret-id"
+      url: https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}
+      path: auth/approle/role/github-master-controller/secret-id
       token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
   register: github_master_controller_secret_id
@@ -87,7 +86,7 @@
 
 - name: Vaultops | Downstream | github.com | Create Vault Client Certificate
   community.hashi_vault.vault_write:
-      url: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
+      url: https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}
       path: pki/issue/vault_client_certificate
       token: "{{ pv_tmp_vault_downstream_github_vault_token }}"
       validate_certs: true
@@ -104,7 +103,7 @@
       access_token: "{{ gh_prod_api_token }}"
       name: github-master-controller
       organization: easyiac
-      description: "Github master Controller"
+      description: Github master Controller
       private: false
       state: present
       force_defaults: true
@@ -114,9 +113,8 @@
   ansible.builtin.assert:
       that:
           - pv_scmint_github_repo_create.repo.default_branch == "main"
-      fail_msg: "Default branch is not main, Current default branch is
-          {{ pv_scmint_github_repo_create.repo.default_branch }}"
-      success_msg: "Default branch is main"
+      fail_msg: Default branch is not main, Current default branch is {{ pv_scmint_github_repo_create.repo.default_branch }}
+      success_msg: Default branch is main
 
 - name: Vaultops | Downstream | github.com | Create environment
   ansible.builtin.uri:
@@ -131,14 +129,14 @@
               protected_branches: false
               custom_branch_policies: true
       headers:
-          "Accept": "application/vnd.github.v3"
-          "content-type": "application/vnd.github+json"
-          "authorization": "Bearer {{ gh_prod_api_token }}"
+          Accept: application/vnd.github.v3
+          content-type: application/vnd.github+json
+          authorization: Bearer {{ gh_prod_api_token }}
   register: pv_scmint_tmp_github_master_controller_repo_env_create
 
 - name: Vaultops | Downstream | github.com | Create or Update a repository secret
   github_action_secret:
-      api_ep: "https://api.github.com"
+      api_ep: https://api.github.com
       pat: "{{ gh_prod_api_token }}"
       is_secret: "{{ item.is_secret | default(omit) }}"
       state: present
@@ -156,14 +154,15 @@
         unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.private_key }}"
         base64: true
       - name: VAULT_CLIENT_CERTIFICATE_CONTENT_BASE64
-        unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.certificate }}\n\
-            {{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain | join('\n') }}"
+        unencrypted_secret:
+            "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.certificate }}\n{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain
+            | join('\n') }}"
         base64: true
       - name: ROOT_CA_CERTIFICATE_CONTENT_BASE64
         unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain | last }}"
         base64: true
       - name: VAULT_ADDR
-        unencrypted_secret: "https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}"
+        unencrypted_secret: https://{{ vault_ha_client.vault_ha_hostname }}:{{ vault_ha_client.vault_ha_port }}
 
 - name: Vaultops | Downstream | github.com | Github Actions Workflow Details
   ansible.builtin.uri:
@@ -174,8 +173,8 @@
       return_content: true
       body_format: json
       headers:
-          "Accept": "application/vnd.github+json"
-          "authorization": "Bearer {{ gh_prod_api_token }}"
+          Accept: application/vnd.github+json
+          authorization: Bearer {{ gh_prod_api_token }}
   register: pv_scmint_tmp_github_master_controller_repo_dispatch
 
 - name: Vaultops | Downstream | github.com | Add collaborator
@@ -187,11 +186,11 @@
       status_code: [204, 200, 201]
       body_format: json
       body:
-          permission: "admin"
+          permission: admin
       headers:
-          "Accept": "application/vnd.github.v3"
-          "content-type": "application/vnd.github.v3+json"
-          "authorization": "Bearer {{ gh_prod_api_token }}"
+          Accept: application/vnd.github.v3
+          content-type: application/vnd.github.v3+json
+          authorization: Bearer {{ gh_prod_api_token }}
   register: pv_scmint_tmp_github_master_controller_repo_collaborator_res
   changed_when: pv_scmint_tmp_github_master_controller_repo_collaborator_res.status == 201
 
@@ -207,8 +206,8 @@
           ref: "{{ pv_scmint_github_repo_create.repo.default_branch }}"
           inputs: {}
       headers:
-          "Accept": "application/vnd.github+json"
-          "authorization": "Bearer {{ gh_prod_api_token }}"
+          Accept: application/vnd.github+json
+          authorization: Bearer {{ gh_prod_api_token }}
   when: pv_scmint_tmp_github_master_controller_repo_dispatch.status == 200
   register: pv_scmint_tmp_github_master_controller_repo_dispatch_res
   changed_when: pv_scmint_tmp_github_master_controller_repo_dispatch_res.status == 204

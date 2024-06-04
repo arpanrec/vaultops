@@ -1,10 +1,9 @@
 ---
 name: Linting
 
-"on":
+on:
     push:
     workflow_dispatch:
-
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
@@ -21,8 +20,8 @@ jobs:
               uses: actions/setup-python@v5
               with:
                   python-version: "3.10"
-                  cache: "pip"
-                  cache-dependency-path: ".github/files/requirements-dev.txt"
+                  cache: pip
+                  cache-dependency-path: .github/files/requirements-dev.txt
 
             - name: Setup Terraform
               uses: hashicorp/setup-terraform@v3
@@ -69,6 +68,6 @@ jobs:
                   ansible-lint
 
             - name: Analysing the code with terraform
-              run: |+
+              run: |
                   set -ex
                   terraform fmt -check=true -recursive
