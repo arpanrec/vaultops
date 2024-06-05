@@ -63,7 +63,8 @@
         loop: "{{ vault_old_install_dirs.files | map(attribute='path') | list }}"
         loop_control:
             loop_var: vault_old_install_path
-        when: vault_old_install_path | replace(pv_vault_base_path + '/' , '') not in pv_vault_raft_nodes_in_host.keys() | list
+        when: vault_old_install_path | replace(pv_vault_base_path + '/' , '')
+            not in pv_vault_raft_nodes_in_host.keys() | list
 
 - name: Vaultops | Vault | Install | System | Node | Unzip Vault
   ansible.builtin.unarchive:

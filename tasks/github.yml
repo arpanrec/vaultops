@@ -15,7 +15,8 @@
 
 - name: Vaultops | Downstream | github.com | Set Token
   ansible.builtin.set_fact:
-      pv_tmp_vault_downstream_github_vault_token: "{{ pv_tmp_vault_downstream_github_com_login_res.login.auth.client_token }}"
+      pv_tmp_vault_downstream_github_vault_token: "{{ pv_tmp_vault_downstream_github_com_login_res.login.auth.\
+          client_token }}"
 
 - name: Vaultops | Downstream | github.com | Get Github Production Secrets
   community.hashi_vault.vault_kv2_get:
@@ -113,7 +114,8 @@
   ansible.builtin.assert:
       that:
           - pv_scmint_github_repo_create.repo.default_branch == "main"
-      fail_msg: Default branch is not main, Current default branch is {{ pv_scmint_github_repo_create.repo.default_branch }}
+      fail_msg: Default branch is not main, Current default branch is
+          {{ pv_scmint_github_repo_create.repo.default_branch }}
       success_msg: Default branch is main
 
 - name: Vaultops | Downstream | github.com | Create environment
@@ -154,8 +156,8 @@
         unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.private_key }}"
         base64: true
       - name: VAULT_CLIENT_CERTIFICATE_CONTENT_BASE64
-        unencrypted_secret:
-            "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.certificate }}\n{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain
+        unencrypted_secret: "{{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.certificate }}\n\
+            {{ pv_tmp_vault_downstream_github_com_vault_client_cert.data.data.ca_chain
             | join('\n') }}"
         base64: true
       - name: ROOT_CA_CERTIFICATE_CONTENT_BASE64

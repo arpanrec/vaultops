@@ -9,8 +9,8 @@
       owner: "{{ pv_vault_user }}"
       group: "{{ pv_vault_group }}"
 
-- name:
-      Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate | Create Openssl Certificate Signing
+- name: Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate
+      | Create Openssl Certificate Signing
       Request
   community.crypto.openssl_csr:
       path: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.csr"
@@ -45,7 +45,8 @@
       group: "{{ pv_vault_group }}"
   register: vault_tls_retry_join_node_signed_certificate
 
-- name: Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate | Create certificate full chain
+- name: Vaultops | Vault Virtual Node Server | Install | TLS
+      | Retry Join Node Certificate | Create certificate full chain
   ansible.builtin.copy:
       content: |
           {{ vault_tls_retry_join_node_signed_certificate.certificate | trim }}
