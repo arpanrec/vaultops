@@ -10,8 +10,7 @@
       group: "{{ pv_vault_group }}"
 
 - name: Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate
-      | Create Openssl Certificate Signing
-      Request
+      | Create Openssl Certificate Signing Request
   community.crypto.openssl_csr:
       path: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.csr"
       privatekey_path: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.key"
