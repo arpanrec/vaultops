@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/arpanrec/vaultops/compare/1.1.0...1.2.0) (2024-06-11)
+
+
+### Bug Fixes
+
+* 1.16.3 ([927296a](https://github.com/arpanrec/vaultops/commit/927296ad37c7cacf26c094d092e57d2edc592f21))
+
+
+### Features
+
+* netcli new repo added ([06c5091](https://github.com/arpanrec/vaultops/commit/06c5091da4684c39295eec05648e392b4edaaec4))
+
 # [1.1.0](https://github.com/arpanrec/vaultops/compare/1.0.1...1.1.0) (2024-05-31)
 
 
