@@ -63,22 +63,22 @@
         loop: "{{ vault_old_install_dirs.files | map(attribute='path') | list }}"
         loop_control:
             loop_var: vault_old_install_path
-        when: vault_old_install_path |
-            replace(pv_vault_base_path + '/' , '') not in pv_vault_raft_nodes_in_host.keys() | list
+        when: vault_old_install_path | replace(pv_vault_base_path + '/' , '')
+            not in pv_vault_raft_nodes_in_host.keys() | list
 
 - name: Vaultops | Vault | Install | System | Node | Unzip Vault
   ansible.builtin.unarchive:
       src: "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ ansible_architecture }}.zip"
-      dest: "/usr/local/bin"
+      dest: /usr/local/bin
       owner: root
       group: root
-      mode: 0755
+      mode: "0o755"
       remote_src: false
   timeout: 300
 
 - name: Vaultops | Vault | Install | System | Set cap CAP_IPC_LOCK+ep
   community.general.capabilities:
-      path: "/usr/local/bin/vault"
+      path: /usr/local/bin/vault
       capability: cap_ipc_lock+ep
       state: present
 
@@ -102,12 +102,13 @@
       dest: "{{ item.dest }}"
       owner: root
       group: root
-      mode: 0644
+      mode: "0644"
       backup: false
   loop:
       - src: "{{ pv_vault_systemd_service }}.service.j2"
-        dest: "/etc/systemd/system/{{ pv_vault_systemd_service }}@.service"
-        # - src: "{{ pv_vault_backup_systemd_service }}.service.j2"
-        #   dest: "/etc/systemd/system/{{ pv_vault_backup_systemd_service }}@.service"
-        # - src: "{{ pv_vault_backup_systemd_service }}.timmer.j2"
-        #   dest: "/etc/systemd/system/{{ pv_vault_backup_systemd_service }}@.timer"
+        dest:
+            /etc/systemd/system/{{ pv_vault_systemd_service }}@.service
+            # - src: "{{ pv_vault_backup_systemd_service }}.service.j2"
+            #   dest: "/etc/systemd/system/{{ pv_vault_backup_systemd_service }}@.service"
+            # - src: "{{ pv_vault_backup_systemd_service }}.timmer.j2"
+            #   dest: "/etc/systemd/system/{{ pv_vault_backup_systemd_service }}@.timer"

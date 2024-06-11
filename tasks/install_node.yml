@@ -35,16 +35,16 @@
 
 - name: Vaultops | Vault Virtual Node Server | Install | Node | Create Configuration File
   ansible.builtin.template:
-      src: "config.{{ item }}.hcl.j2"
+      src: config.{{ item }}.hcl.j2
       dest: "{{ pv_vault_config_dir }}/{{ item }}.hcl"
       owner: "{{ pv_vault_user }}"
       group: "{{ pv_vault_group }}"
       mode: "0640"
       backup: false
   loop:
-      - "common"
-      - "listener"
-      - "storage"
+      - common
+      - listener
+      - storage
   timeout: 300
 
 - name: Vaultops | Vault Virtual Node Server | Install | TLS
@@ -55,7 +55,7 @@
             type: RSA
             size: 4096
             backup: false
-            mode: 0600
+            mode: "0o600"
             owner: "{{ pv_vault_user }}"
             group: "{{ pv_vault_group }}"
 
@@ -74,7 +74,7 @@
             subject_alt_name: "{{ pv_vault_subject_alt_name }}"
             subject_alt_name_critical: true
             backup: false
-            mode: 0600
+            mode: "0o600"
             owner: "{{ pv_vault_user }}"
             group: "{{ pv_vault_group }}"
 
@@ -87,7 +87,7 @@
             ownca_privatekey_passphrase: "{{ root_ca_key_passphrase }}"
             provider: ownca
             backup: false
-            mode: 0600
+            mode: "0o600"
             return_content: true
             owner: "{{ pv_vault_user }}"
             group: "{{ pv_vault_group }}"
@@ -99,7 +99,7 @@
                 {{ vault_tls_signed_certificate.certificate | trim }}
                 {{ root_ca_cert_pem }}
             dest: "{{ pv_vault_tls_dir }}/vault.fullchain.pem"
-            mode: 0600
+            mode: "0o600"
             owner: "{{ pv_vault_user }}"
             group: "{{ pv_vault_group }}"
             backup: false
@@ -108,7 +108,7 @@
         ansible.builtin.copy:
             content: "{{ root_ca_cert_pem }}"
             dest: "{{ pv_vault_tls_dir }}/ca-client-mtls-crt.pem"
-            mode: 0600
+            mode: "0o600"
             owner: "{{ pv_vault_user }}"
             group: "{{ pv_vault_group }}"
             backup: false
@@ -125,7 +125,7 @@
       rule: allow
       port: "{{ item }}"
       proto: tcp
-      comment: "Vault Node Port"
+      comment: Vault Node Port
       state: enabled
   with_items:
       - "{{ pv_vault_node_port }}"
@@ -139,7 +139,7 @@
       daemon_reload: true
   loop:
       - "{{ pv_vault_systemd_service }}@{{ pv_vault_node_id }}.service"
-      # - "{{ pv_vault_backup_systemd_service }}@{{ pv_vault_node_id }}.service"
-      # - "{{ pv_vault_backup_systemd_service }}@{{ pv_vault_node_id }}.timer"
+  # - "{{ pv_vault_backup_systemd_service }}@{{ pv_vault_node_id }}.service"
+  # - "{{ pv_vault_backup_systemd_service }}@{{ pv_vault_node_id }}.timer"
   loop_control:
       pause: 5

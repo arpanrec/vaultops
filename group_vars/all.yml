@@ -1,5 +1,5 @@
 ---
-ansible_python_interpreter: "/usr/bin/env python3"
+ansible_python_interpreter: /usr/bin/env python3
 
 pv_global_config_env_debug: "{{ lookup('ansible.builtin.env', 'DEBUG', default=false) | bool }}"
 pv_global_config_no_log: "{{ not pv_global_config_env_debug }}"
@@ -23,13 +23,13 @@ pv_vault_info_map:
             1.16.3: d03a4b998d61c1434bc46e332b8b85bbad4d12bbfdbbb11ecff6561b0e2ff049
 vault_rv_version: 1.16.3
 
-pv_vault_user: "vault"
-pv_vault_group: "vault"
-pv_vault_cluster_name: "vault-cluster"
-pv_vault_bin_path: "/usr/local/bin/vault"
-pv_vault_base_path: "/opt/vault"
-pv_vault_backup_base_path: "/var/backups/vault"
+pv_vault_user: vault
+pv_vault_group: vault
+pv_vault_cluster_name: vault-cluster
+pv_vault_bin_path: /usr/local/bin/vault
+pv_vault_base_path: /opt/vault
+pv_vault_backup_base_path: /var/backups/vault
 pv_vault_autopilot_update_interval_seconds: 5
 pv_vault_autopilot_reconcile_interval_seconds: "{{ pv_vault_autopilot_update_interval_seconds + 5 }}"
-pv_vault_systemd_service: "vault"
-pv_vault_backup_systemd_service: "vault-backup"
+pv_vault_systemd_service: vault
+pv_vault_backup_systemd_service: vault-backup

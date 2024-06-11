@@ -1,39 +1,69 @@
 ---
+extends: default
 ignore:
-    - "vault_config"
+    - venv
+    - .venv
+    - env
+    - .env
+    - node_modules
 yaml-files:
     - "*.yaml"
     - "*.yml"
-    - ".yamllint"
+    - .yamllint
 rules:
     anchors: enable
-    braces: enable
-    brackets: enable
-    colons: enable
-    commas: enable
+    braces:
+        level: error
+        max-spaces-inside: 1
+    brackets:
+        level: error
+        max-spaces-inside: 1
+    colons:
+        level: error
+        max-spaces-after: -1
+    commas:
+        level: error
+        max-spaces-after: -1
     comments:
-        level: warning
+        level: error
         min-spaces-from-content: 1
-    comments-indentation:
-        level: warning
+    comments-indentation: false
     document-end: disable
     document-start:
-        level: warning
-    empty-lines: enable
+        level: error
+    empty-lines:
+        level: error
+        max: 3
     empty-values: disable
     float-values: disable
-    hyphens: enable
-    indentation:
-        spaces: 4
-    key-duplicates: enable
-    key-ordering: disable
-    new-line-at-end-of-file: enable
-    new-lines: enable
-    octal-values: disable
-    quoted-strings: disable
-    trailing-spaces: enable
-    truthy:
-        level: warning
-    line-length:
-        max: 120
+    hyphens:
         level: error
+    indentation:
+        check-multi-line-strings: false
+        indent-sequences: consistent
+        level: error
+        spaces: 4
+    key-duplicates:
+        level: error
+    key-ordering: disable
+    line-length:
+        level: error
+        max: 120
+    new-line-at-end-of-file:
+        level: error
+    new-lines:
+        level: error
+        type: unix
+    octal-values:
+        forbid-explicit-octal: true
+        forbid-implicit-octal: true
+        level: error
+    quoted-strings: disable
+    trailing-spaces:
+        level: error
+    truthy:
+        level: error
+        allowed-values:
+            - "true"
+            - "false"
+        check-keys: true
