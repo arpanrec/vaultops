@@ -1,5 +1,5 @@
 ---
-ansible_python_interpreter: /usr/bin/env python3
+ansible_python_interpreter: auto # /usr/bin/env python3
 
 pv_global_config_env_debug: "{{ lookup('ansible.builtin.env', 'DEBUG', default=false) | bool }}"
 pv_global_config_no_log: "{{ not pv_global_config_env_debug }}"

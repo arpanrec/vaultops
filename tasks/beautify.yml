@@ -1,13 +1,4 @@
 ---
-- name: Vaultops | Vault | Patch | BeautifyDotfiles
-  ansible.builtin.import_role:
-      name: arpanrec.nebula.dotfiles
-
 - name: Vaultops | Vault | Patch | BeautifyTerminal
   ansible.builtin.import_role:
       name: arpanrec.nebula.terminal
-
-- name: Vaultops | Vault | Patch | BeautifyReset git config
-  ansible.builtin.command:
-      cmd: git --git-dir="$HOME/.dotfiles" --work-tree=$HOME reset --hard HEAD # noqa: command-instead-of-module
-  changed_when: false
