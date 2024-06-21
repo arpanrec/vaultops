@@ -69,3 +69,13 @@ resource "vault_approle_auth_backend_role" "github-arpanrec-netcli" {
   secret_id_num_uses = 0
   token_num_uses     = 0
 }
+
+resource "vault_approle_auth_backend_role" "github-arpanrec-minio-install" {
+  depends_on         = [vault_auth_backend.approle]
+  backend            = vault_auth_backend.approle.path
+  role_name          = "github-arpanrec-minio-install"
+  token_policies     = ["default", "github-arpanrec-minio-install", "default_login"]
+  secret_id_ttl      = 0
+  secret_id_num_uses = 0
+  token_num_uses     = 0
+}
