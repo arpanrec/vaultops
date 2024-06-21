@@ -61,7 +61,9 @@ class VaultSecrets(BaseModel):
 
     vault_ha_hostname: str = Field(description="The hostname of the Vault HA cluster.")
     vault_ha_port: int = Field(description="The port number of the Vault HA cluster.")
-
+    github_details: GithubDetails = Field(description="The GitHub details.")
+    root_pki_details: RootPkiDetails = Field(description="The root PKI details.")
+    vault_admin_userpass_details: VaultAdminUserpassDetails = Field(description="The Vault admin userpass details.")
     external_services: Dict[str, Union[str, bool, int, Dict]] = Field(
         default={}, description="The external services required for the Vault HA cluster."
     )
@@ -69,7 +71,3 @@ class VaultSecrets(BaseModel):
     ansible_inventory: Dict[str, Union[str, bool, int, Dict]] = Field(
         default={}, description="The Ansible inventory details."
     )
-
-    github_details: GithubDetails = Field(description="The GitHub details.")
-    root_pki_details: RootPkiDetails = Field(description="The root PKI details.")
-    vault_admin_userpass_details: VaultAdminUserpassDetails = Field(description="The Vault admin userpass details.")
