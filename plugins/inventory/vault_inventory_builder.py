@@ -92,7 +92,6 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory = inventory
 
         self.inventory.add_host("localhost")
-        self.inventory.set_variable("localhost", "ansible_connection", "local")
 
         self.inventory.add_group(self.ansible_vault_server_group_name)
         self.inventory.add_group(self.ansible_vault_node_servers_group_name)
