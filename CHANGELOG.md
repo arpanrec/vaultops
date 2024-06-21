@@ -1,3 +1,11 @@
+## [1.2.1](https://github.com/arpanrec/vaultops/compare/1.2.0...1.2.1) (2024-06-21)
+
+
+### Bug Fixes
+
+* minio install ([#5](https://github.com/arpanrec/vaultops/issues/5)) ([5c16eea](https://github.com/arpanrec/vaultops/commit/5c16eeaf3e540fce95af8c025b3b66c8d012bdb3))
+* updated dependencies ([b6f6090](https://github.com/arpanrec/vaultops/commit/b6f60904b52a7acbc63d456af3ea6287b9318a18))
+
 # [1.2.0](https://github.com/arpanrec/vaultops/compare/1.1.0...1.2.0) (2024-06-11)
 
 
