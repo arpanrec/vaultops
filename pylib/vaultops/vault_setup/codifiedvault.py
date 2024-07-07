@@ -15,7 +15,6 @@ import json
 import logging
 import os
 import shutil
-import time
 from typing import Any, Dict
 
 from python_terraform import Terraform  # type: ignore
@@ -38,17 +37,7 @@ def terraform_apply(
     if os.path.exists("codifiedvault/.terraform"):
         shutil.rmtree("codifiedvault/.terraform", ignore_errors=False)
 
-    epoch_time = str(int(time.time()))
-
-    tf_state_file = os.path.join(vault_config.vaultops_tmp_dir_path, "terraform.tfstate")
-    tf_state_file_bak = f"{tf_state_file}_bak_{epoch_time}"
-    backend_tf_vars: Dict[str, Any] = {"path": tf_state_file}
-    if vault_config.get_codifiedvault_tf_state() is not None:
-        with open(tf_state_file, "w", encoding="utf-8") as f:
-            f.write(str(vault_config.get_codifiedvault_tf_state()))
-    else:
-        if os.path.exists(tf_state_file):
-            shutil.rmtree(tf_state_file, ignore_errors=False)
+    backend_tf_vars: Dict[str, Any] = vault_config.get_terraform_backend_config()
 
     tf = Terraform(working_dir="codifiedvault", is_env_vars_included=True)
     LOGGER.info("Writing backend vars in %s/backend.auto.tfvars.json", vault_config.vaultops_tmp_dir_path)
@@ -98,10 +87,3 @@ def terraform_apply(
 
     if apply_ret_code != 0:
         raise ValueError(f"Failed to run terraform apply. error: {apply_stderr}")
-
-    with open(tf_state_file, "r", encoding="utf-8") as f:
-        LOGGER.debug("Saving codifiedvault_tf_state")
-        vault_config.set_codifiedvault_tf_state(f.read())
-
-    LOGGER.debug("Moving %s to %s", tf_state_file, tf_state_file_bak)
-    shutil.move(tf_state_file, tf_state_file_bak)

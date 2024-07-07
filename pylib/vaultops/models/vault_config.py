@@ -1,14 +1,16 @@
 import base64
+import hashlib
 import ipaddress
 import os
 from typing import Any, Dict, Optional
 
 import boto3
 import yaml
-from pydantic import computed_field, Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from mypy_boto3_s3.client import S3Client
 from botocore.config import Config
+from mypy_boto3_s3.client import S3Client
+from mypy_boto3_s3.type_defs import GetBucketLocationOutputTypeDef
+from pydantic import Field, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .vault_secrets import VaultSecrets
 from .vault_server import VaultServer
@@ -27,6 +29,7 @@ class VaultConfig(BaseSettings):
         vaultops_s3_access_key (str): The access key for the S3 bucket.
         vaultops_s3_secret_key (str): The secret key for the S3 bucket.
         vaultops_s3_signature_version (str): The signature version for the S3 bucket.
+        vaultops_s3_region (str): The region of the S3 bucket.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
@@ -38,9 +41,11 @@ class VaultConfig(BaseSettings):
     vaultops_s3_access_key: str
     vaultops_s3_secret_key: str
     vaultops_s3_signature_version: str = Field(default="s3v4", description="The signature version for the S3 bucket")
+    vaultops_s3_region: str = Field(description="The region of the S3 bucket")
 
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
+    __vault_terraform_state_key = "terraform.tfstate"
     __vault_config_dict: Dict[str, Any] = {}
     __s3_client: S3Client
 
@@ -56,15 +61,23 @@ class VaultConfig(BaseSettings):
             aws_access_key_id=self.vaultops_s3_access_key,
             aws_secret_access_key=self.vaultops_s3_secret_key,
             aws_session_token=None,
-            config=Config(signature_version=self.vaultops_s3_signature_version,
-                          retries={"max_attempts": 3, "mode": "standard"}),
+            config=Config(
+                signature_version=self.vaultops_s3_signature_version, retries={"max_attempts": 3, "mode": "standard"}
+            ),
             verify=True,
         )
 
-        pre_requisites = yaml.safe_load(f)
+        bucket_location: GetBucketLocationOutputTypeDef = self.__s3_client.get_bucket_location(
+            Bucket=self.vaultops_s3_bucket_name
+        )
+
+        if bucket_location.get("LocationConstraint", "") != self.vaultops_s3_region:
+            raise ValueError(f"Bucket Location: {bucket_location} does not match the region: {self.vaultops_s3_region}")
+
+        pre_requisites = yaml.safe_load(self.__read_s3_str(self.__vault_config_key))
         self.__vault_config_dict.update(pre_requisites)
 
-    def __read_s3_file(self, key: str) -> str:
+    def __read_s3_str(self, key: str) -> str:
         """
         Reads the file from the S3 bucket.
 
@@ -76,12 +89,34 @@ class VaultConfig(BaseSettings):
         """
         sse_customer_key: str = base64.b64decode(self.vaultops_s3_aes256_sse_customer_key_base64).decode("utf-8")
         response = self.__s3_client.get_object(
-            Bucket=self.vaultops_s3_bucket_name, Key=key,
+            Bucket=self.vaultops_s3_bucket_name,
+            Key=key,
             SSECustomerAlgorithm="AES256",
             SSECustomerKey=sse_customer_key,
             ChecksumMode="ENABLED",
         )
         return response["Body"].read().decode("utf-8")
+
+    def __write_s3_string(  # pylint: disable=too-many-arguments
+        self, key: str, content: str, content_type: str, content_encoding: str = "utf-8", content_language: str = "en"
+    ) -> None:
+        sha256_hash: str = base64.b64encode(hashlib.sha256(content.encode("utf-8")).digest()).decode("utf-8")
+        md5_hash: str = base64.b64encode(hashlib.md5(content.encode("utf-8")).digest()).decode("utf-8")
+        self.__s3_client.put_object(
+            Bucket=self.vaultops_s3_bucket_name,
+            Key=key,
+            Body=content.encode("utf-8"),
+            Metadata={},
+            ContentType=content_type,
+            ContentEncoding=content_encoding,
+            ContentLanguage=content_language,
+            ACL="private",
+            ChecksumSHA256=sha256_hash,
+            ContentMD5=md5_hash,
+            SSECustomerAlgorithm="AES256",
+            SSECustomerKey=self.vaultops_s3_aes256_sse_customer_key_base64,
+            ContentLength=len(content),
+        )
 
     @computed_field(return_type=Dict[str, VaultServer])  # type: ignore
     @property
@@ -122,17 +157,25 @@ class VaultConfig(BaseSettings):
         except Exception as e:
             raise e
 
-    def get_codifiedvault_tf_state(self) -> Optional[str]:
+    def get_terraform_backend_config(self) -> Dict[str, Any]:
         """
-        Returns the Terraform state.
+        Returns the Terraform backend configuration.
         """
 
-        if not os.path.exists(self._tf_state_file):
-            return None
-        with open(self._tf_state_file, "r", encoding="utf-8") as tf_state_file:
-            return tf_state_file.read()
+        return {
+            "bucket": self.vaultops_s3_bucket_name,
+            "key": self.__vault_terraform_state_key,
+            "endpoint": self.vaultops_s3_endpoint_url,
+            "access_key": self.vaultops_s3_access_key,
+            "secret_key": self.vaultops_s3_secret_key,
+            "region": self.vaultops_s3_region,
+            "skip_credentials_validation": True,
+            "skip_metadata_api_check": True,
+            "skip_region_validation": True,
+            "force_path_style": True,
+        }
 
-    def get_vault_unseal_keys(self) -> Optional[Dict[str, str]]:
+    def unseal_keys(self, unseal_keys: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, str]]:
         """
         Returns the Vault unseal keys.
 
@@ -140,35 +183,11 @@ class VaultConfig(BaseSettings):
             Dict[str, str]: The Vault unseal keys.
         """
 
-        if not os.path.exists(self.vault_unseal_keys_path):
-            return None
+        if unseal_keys is not None:
+            self.__write_s3_string(self.__vault_unseal_keys_key, yaml.dump(unseal_keys), "text/yaml")
+            return unseal_keys
 
-        with open(self.vault_unseal_keys_path, "r", encoding="utf-8") as unseal_keys_file:
-            return yaml.safe_load(unseal_keys_file)
-
-    def set_vault_unseal_keys(self, unseal_keys: Dict[str, Any]) -> None:
-        """
-        Sets the Vault unseal keys.
-
-        Args:
-            unseal_keys (Dict[str, str]): The Vault unseal keys.
-        """
-
-        os.makedirs(os.path.dirname(self.vault_unseal_keys_path), exist_ok=True)
-
-        with open(self.vault_unseal_keys_path, "w", encoding="utf-8") as unseal_keys_file:
-            yaml.dump(unseal_keys, unseal_keys_file)
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vault_unseal_keys_path(self):
-        """
-        Returns the path to the file containing the unseal keys.
-
-        Returns:
-            str: The path to the file containing the unseal keys.
-        """
-        return os.path.join(self.vaultops_config_dir_path, self._vault_unseal_keys_file_name)
+        return yaml.safe_load(self.__read_s3_str(self.__vault_unseal_keys_key))
 
     def save_raft_snapshot(self, snapshot: Any) -> None:
         """
@@ -177,9 +196,7 @@ class VaultConfig(BaseSettings):
         Args:
             snapshot: The Raft snapshot to save.
         """
-        os.makedirs(os.path.dirname(self._raft_snapshot_file), exist_ok=True)
-        with open(self._raft_snapshot_file, "wb") as f:
-            f.write(snapshot)
+        return None
 
     @computed_field(return_type=VaultSecrets)  # type: ignore
     @property
@@ -191,5 +208,4 @@ class VaultConfig(BaseSettings):
             VaultSecrets: The secrets stored in the file.
         """
 
-        vault_secrets = self.__vault_config_dict["vault_secrets"]
-        return VaultSecrets.model_validate(vault_secrets)
+        return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])

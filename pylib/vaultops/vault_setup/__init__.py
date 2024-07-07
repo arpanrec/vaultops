@@ -112,7 +112,7 @@ def vault_setup(inventory_file_name: str) -> VaultHaClient:
     terraform_apply(vault_config=vault_config, vault_ha_client=vault_ha_client)
 
     LOGGER.info("Revoking all tokens and secret ID accessors")
-    if vault_config.get_vault_unseal_keys():
+    if vault_config.unseal_keys():
         vault_token_revoke(vault_client=ready_node_details)
     else:
         vault_token_revoke(vault_client=vault_ha_client)

@@ -70,7 +70,7 @@ def unseal_vault(
             LOGGER.info("%s:: Vault is sealed. Unsealing...", raft_node_id)
 
             # pylint: disable=R0801
-            vault_cluster_keys: Optional[Dict[str, Any]] = vault_config.get_vault_unseal_keys()
+            vault_cluster_keys: Optional[Dict[str, Any]] = vault_config.unseal_keys()
             if vault_cluster_keys is None:
                 raise VaultOpsRetryError("Vault cluster unseal keys not found in secrets.")
 

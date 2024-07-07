@@ -94,6 +94,10 @@ DOCUMENTATION = r"""
             required: false
             type: str
             default: s3v4
+        vaultops_s3_region:
+            description: S3 region.
+            required: false
+            type: str
 """
 
 

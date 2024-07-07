@@ -43,16 +43,17 @@ def initialize_vault(all_raft_nodes: Dict[str, VaultRaftNodeHvac], vault_config:
     if if_any_node_is_initialized:
         return
 
-    if vault_config.get_vault_unseal_keys():
+    if vault_config.unseal_keys():
         raise VaultOpsRetryError("Vault is not initialized but unseal keys are provided.")
 
-    if vault_config.get_codifiedvault_tf_state() is not None:
-        raise VaultOpsRetryError("Vault is not initialized but Terraform state file exists.")
+    # TODO: Uncomment this block after implementing the codified vault tf state.
+    # if vault_config.get_codifiedvault_tf_state() is not None:
+    #     raise VaultOpsRetryError("Vault is not initialized but Terraform state file exists.")
 
     init_node_id = list(all_raft_nodes.keys())[0]
     init_node = all_raft_nodes[init_node_id]
     LOGGER.info("%s:: Vault is not initialized. Initializing...", init_node_id)
-    LOGGER.info("%s:: Saving vault init keys to %s", init_node_id, vault_config.vault_unseal_keys_path)
+    LOGGER.info("%s:: Saving vault init keys to %s", init_node_id, vault_config.vaultops_s3_bucket_name)
 
     user_wants_to_continue = input("Do you want to continue? type 'yes' to continue: ")
     vault_client: hvac.Client = init_node.hvac_client
@@ -78,7 +79,7 @@ def initialize_vault(all_raft_nodes: Dict[str, VaultRaftNodeHvac], vault_config:
     LOGGER.info("%s:: Vault is initialized.", init_node_id)
     LOGGER.debug("%s:: Vault init response: %s", init_node_id, yaml.dump(data=init_response, default_flow_style=False))
 
-    vault_config.set_vault_unseal_keys(init_response)
+    vault_config.unseal_keys(init_response)
     LOGGER.info("%s:: Vault init secrets are saved in %s", init_node_id, vault_config.vault_unseal_keys_path)
 
     if vault_client.sys.is_initialized():
