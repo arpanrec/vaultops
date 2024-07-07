@@ -1,4 +1,3 @@
-import atexit
 import logging
 import os
 from typing import Any, Dict, Union
@@ -10,15 +9,7 @@ from ..models.vault_config import VaultConfig
 LOGGER = logging.getLogger(__name__)
 
 
-def close_vault_config(vault_config: VaultConfig) -> None:
-    """
-    Close the VaultConfig object.
-    """
-
-    vault_config.close()
-
-
-def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]], vaultops_update_run_id: bool) -> VaultConfig:
+def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]]) -> VaultConfig:
     """
     Build the VaultConfig object from the given configuration.
     """
@@ -43,8 +34,6 @@ def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]], vaultops_u
     vault_config = VaultConfig(
         vaultops_tmp_dir_path=vaultops_tmp_dir_path,
         vaultops_config_dir_path=vaultops_config_dir_path,
-        vaultops_update_run_id=vaultops_update_run_id,
     )
-    atexit.register(close_vault_config, vault_config)
 
     return vault_config

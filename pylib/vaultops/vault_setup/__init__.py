@@ -35,7 +35,7 @@ def vault_setup(inventory_file_name: str) -> VaultHaClient:
         inventory_file_name: str - inventory file name
     """
 
-    vault_config: VaultConfig = build_vault_config(inventory_file_name, vaultops_update_run_id=True)
+    vault_config: VaultConfig = build_vault_config(inventory_file_name)
 
     LOGGER.info("Loading root ca key")
     rsa_root_ca_key: PrivateKeyTypes = serialization.load_pem_private_key(

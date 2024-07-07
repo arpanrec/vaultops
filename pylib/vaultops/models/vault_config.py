@@ -1,12 +1,15 @@
+import base64
 import ipaddress
 import os
 from typing import Any, Dict, Optional
 
+import boto3
 import yaml
-from pydantic import computed_field
+from pydantic import computed_field, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from mypy_boto3_s3.client import S3Client
+from botocore.config import Config
 
-from .exit_hook import ExitHooks
 from .vault_secrets import VaultSecrets
 from .vault_server import VaultServer
 
@@ -17,88 +20,68 @@ class VaultConfig(BaseSettings):
 
     Attributes:
         vaultops_tmp_dir_path (str): The root directory for storing temporary files.
-        vaultops_config_dir_path (str): The root directory for storing configuration files.
+        vaultops_s3_aes256_sse_customer_key_base64 (str):
+            - The base64-encoded AES256 key for the S3 bucket.
+        vaultops_s3_bucket_name (str): The name of the S3 bucket.
+        vaultops_s3_endpoint_url (str): The endpoint URL of the S3 bucket.
+        vaultops_s3_access_key (str): The access key for the S3 bucket.
+        vaultops_s3_secret_key (str): The secret key for the S3 bucket.
+        vaultops_s3_signature_version (str): The signature version for the S3 bucket.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
 
     vaultops_tmp_dir_path: str
-    vaultops_config_dir_path: str
-    vaultops_update_run_id: bool = False
+    vaultops_s3_aes256_sse_customer_key_base64: str
+    vaultops_s3_bucket_name: str
+    vaultops_s3_endpoint_url: str
+    vaultops_s3_access_key: str
+    vaultops_s3_secret_key: str
+    vaultops_s3_signature_version: str = Field(default="s3v4", description="The signature version for the S3 bucket")
 
-    __vault_config_file_name = "vault_config.yml"
+    __vault_config_key = "vault_config.yml"
+    __vault_unseal_keys_key = "vault_unseal_keys.yml"
     __vault_config_dict: Dict[str, Any] = {}
-    _run_id_start_file_name = "run_id_start.txt"
-    _run_id_end_file_name = "run_id_end.txt"
-    _vault_unseal_keys_file_name = "vault_unseal_keys.yml"
-    _hooks = ExitHooks()
+    __s3_client: S3Client
 
     def __init__(self, **data: Any):
         super().__init__(**data)
 
-        if not os.path.isabs(self.vaultops_config_dir_path):
-            raise ValueError("vaultops_config_dir_path must be an absolute path")
-
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
 
-        self._hooks.hook()
-        _run_id_start_file = os.path.join(self.vaultops_config_dir_path, self._run_id_start_file_name)
-        _run_id_end_file = os.path.join(self.vaultops_config_dir_path, self._run_id_end_file_name)
-        _run_id_start: int = 0
-        _run_id_end: int = 0
-
-        if os.path.exists(_run_id_start_file):
-            with open(_run_id_start_file, "r", encoding="utf-8") as f:
-                _run_id_start = int(f.read())
-
-        if os.path.exists(_run_id_end_file):
-            with open(_run_id_end_file, "r", encoding="utf-8") as f:
-                _run_id_end = int(f.read())
-
-        if _run_id_start != _run_id_end:
-            raise ValueError("Run ID start and end do not match")
-
-        self._tf_state_file = os.path.join(
-            self.vaultops_config_dir_path, "tfstate", f"terraform-{_run_id_start}.tfstate"
+        self.__s3_client = boto3.client(
+            service_name="s3",
+            endpoint_url=self.vaultops_s3_endpoint_url,
+            aws_access_key_id=self.vaultops_s3_access_key,
+            aws_secret_access_key=self.vaultops_s3_secret_key,
+            aws_session_token=None,
+            config=Config(signature_version=self.vaultops_s3_signature_version,
+                          retries={"max_attempts": 3, "mode": "standard"}),
+            verify=True,
         )
 
-        if self.vaultops_update_run_id:
-            self._run_id = _run_id_start + 1
-        else:
-            self._run_id = _run_id_start
+        pre_requisites = yaml.safe_load(f)
+        self.__vault_config_dict.update(pre_requisites)
 
-        self._next_tf_state_file = os.path.join(
-            self.vaultops_config_dir_path, "tfstate", f"terraform-{self._run_id}.tfstate"
-        )
-
-        self._raft_snapshot_file = os.path.join(
-            self.vaultops_config_dir_path, "vault-raft-snapshot", f"vault-raft-snapshot-{self._run_id}.snap"
-        )
-
-        if self._run_id > 2 and self.get_codifiedvault_tf_state() is None:
-            raise ValueError("Terraform state file not found but run ID is greater than 2")
-
-        if self._run_id > 2 and self.get_vault_unseal_keys() is None:
-            raise ValueError("Vault unseal keys file not found, but run ID is greater than 2")
-
-        __vault_config_file = os.path.join(self.vaultops_config_dir_path, self.__vault_config_file_name)
-        with open(__vault_config_file, "r", encoding="utf-8") as f:
-            pre_requisites = yaml.safe_load(f)
-            self.__vault_config_dict.update(pre_requisites)
-
-        if self.vaultops_update_run_id:
-            with open(_run_id_start_file, "w", encoding="utf-8") as f:
-                f.write(str(self._run_id))
-
-    def close(self) -> None:
+    def __read_s3_file(self, key: str) -> str:
         """
-        Close the VaultConfig object.
+        Reads the file from the S3 bucket.
+
+        Args:
+            key (str): The key of the file to read.
+
+        Returns:
+            str: The content of the file.
         """
-        if self._hooks.exit_code == 0 and self._hooks.exception is None and self.vaultops_update_run_id:
-            _run_id_end_file = os.path.join(self.vaultops_config_dir_path, self._run_id_end_file_name)
-            with open(_run_id_end_file, "w", encoding="utf-8") as f:
-                f.write(str(self._run_id))
+        sse_customer_key: str = base64.b64decode(self.vaultops_s3_aes256_sse_customer_key_base64).decode("utf-8")
+        response = self.__s3_client.get_object(
+            Bucket=self.vaultops_s3_bucket_name, Key=key,
+            SSECustomerAlgorithm="AES256",
+            SSECustomerKey=sse_customer_key,
+            ChecksumMode="ENABLED",
+        )
+        return response["Body"].read().decode("utf-8")
 
     @computed_field(return_type=Dict[str, VaultServer])  # type: ignore
     @property
@@ -148,18 +131,6 @@ class VaultConfig(BaseSettings):
             return None
         with open(self._tf_state_file, "r", encoding="utf-8") as tf_state_file:
             return tf_state_file.read()
-
-    def set_codifiedvault_tf_state(self, tf_state: str) -> None:
-        """
-        Sets the Terraform state.
-
-        Args:
-            tf_state (str): The Terraform state.
-        """
-
-        os.makedirs(os.path.dirname(self._next_tf_state_file), exist_ok=True)
-        with open(self._next_tf_state_file, "w", encoding="utf-8") as tf_state_file:
-            tf_state_file.write(tf_state)
 
     def get_vault_unseal_keys(self) -> Optional[Dict[str, str]]:
         """
