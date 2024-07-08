@@ -289,5 +289,3 @@ dist
 .pnp.*
 
 .vscode/settings.json
-/vault_config/*
-/tmp/*

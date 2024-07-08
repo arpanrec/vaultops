@@ -1,14 +1,8 @@
-import base64
 import ipaddress
 import os
 from typing import Any, Dict, Optional
 
-import boto3
 import yaml
-from botocore.config import Config
-from botocore.exceptions import ClientError
-from botocore.response import StreamingBody
-from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -153,74 +147,9 @@ class VaultConfig(BaseSettings, extra="allow"):
 
         return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])
 
-    def storage_ops(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        file_path: str,
-        file_content: Optional[bytes] = None,
-        content_type="text/plain",
-        content_encoding="utf-8",
-        content_language="en",
-        error_on_missing_file: bool = True,
-    ) -> Optional[str]:
-        """
-        Perform storage operations.
-        Args:
-            file_path: Path of the file.
-            file_content: Content of the file.
-            content_type: Type of the content.
-            content_encoding: Encoding of the content.
-            content_language: Language of the content.
-            error_on_missing_file: Whether to raise an error if the file is missing.
-        Returns:
-            Optional[str]: The content of the file.
-        """
-        vaultops_s3_aes256_sse_customer_key = base64.b64decode(
-            self.vaultops_storage.vaultops_s3_aes256_sse_customer_key_base64
-        ).decode("utf-8")
-        __s3_client = boto3.client(
-            service_name="s3",
-            endpoint_url=self.vaultops_storage.vaultops_s3_endpoint_url,
-            aws_access_key_id=self.vaultops_storage.vaultops_s3_access_key,
-            aws_secret_access_key=self.vaultops_storage.vaultops_s3_secret_key,
-            aws_session_token=None,
-            config=Config(
-                signature_version=self.vaultops_storage.vaultops_s3_signature_version,
-                retries={"max_attempts": 3, "mode": "standard"},
-            ),
-            verify=True,
-        )
+    def storage_ops(self, **kwargs: Any) -> Optional[str]:
 
-        get_bucket_versioning_response = __s3_client.get_bucket_versioning(
-            Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
-        )
-        if get_bucket_versioning_response.get("Status", "") != "Enabled":
-            raise ValueError("Bucket Versioning is not enabled")
-
-        if file_content:
-            __s3_client.put_object(
-                Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
-                Key=file_path,
-                Body=file_content,
-                ContentType=content_type,
-                ContentEncoding=content_encoding,
-                ContentLanguage=content_language,
-                SSECustomerAlgorithm="AES256",
-                SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
-            )
-            return ""
-        try:
-            response: GetObjectOutputTypeDef = __s3_client.get_object(
-                Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
-                Key=file_path,
-                SSECustomerAlgorithm="AES256",
-                SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
-                ChecksumMode="ENABLED",
-            )
-            body: StreamingBody = response["Body"]
-            return body.read().decode("utf-8")
-        except ClientError as e:
-            if (not error_on_missing_file) and e.response["Error"]["Code"] == "NoSuchKey":
-                return None
-            raise ValueError("S3 Client Error") from e
-        except Exception as e:
-            raise ValueError("Error reading file from S3") from e
+        """
+        Wrapper function for storage operations.
+        """
+        return self.vaultops_storage.storage_ops(**kwargs)

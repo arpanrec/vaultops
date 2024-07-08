@@ -22,6 +22,7 @@ import os
 from typing import Any, Dict, List, Union
 from urllib.parse import urlsplit
 
+from ansible.inventory.data import InventoryData  # type: ignore
 from ansible.plugins.inventory import BaseInventoryPlugin  # type: ignore
 from ansible.template import Templar  # type: ignore
 from cryptography.hazmat.backends import default_backend
@@ -130,7 +131,7 @@ class InventoryModule(BaseInventoryPlugin):
         super().parse(inventory, loader, path)
         self.loader = loader
         self.templar = Templar(loader=loader)
-        self.inventory = inventory
+        self.inventory: InventoryData = inventory
 
         self.inventory.add_host("localhost")
 
