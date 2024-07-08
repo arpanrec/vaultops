@@ -1,11 +1,12 @@
 import base64
 import ipaddress
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Literal
 
 import boto3
 import yaml
 from botocore.config import Config
+from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from mypy_boto3_s3.type_defs import GetBucketLocationOutputTypeDef, GetObjectOutputTypeDef
 from pydantic import Field, computed_field
@@ -15,7 +16,7 @@ from .vault_secrets import VaultSecrets
 from .vault_server import VaultServer
 
 
-class VaultConfig(BaseSettings):
+class VaultConfig(BaseSettings, extra="allow"):
     """
     Represents the secrets required for interacting with HashiCorp Vault.
 
@@ -29,6 +30,11 @@ class VaultConfig(BaseSettings):
         vaultops_s3_secret_key (str): The secret key for the S3 bucket.
         vaultops_s3_signature_version (str): The signature version for the S3 bucket.
         vaultops_s3_region (str): The region of the S3 bucket.
+        vaultops_s3_skip_region_validation (bool): Whether to skip region validation.
+        vaultops_s3_s3_skip_metadata_api_check (bool): Whether to skip metadata API check.
+        vaultops_s3_skip_credentials_validation (bool): Whether to skip credentials validation.
+        vaultops_s3_skip_requesting_account_id (bool): Whether to skip requesting the account ID.
+        vaultops_s3_addressing_style (str): The addressing style for the S3 bucket.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
@@ -40,7 +46,20 @@ class VaultConfig(BaseSettings):
     vaultops_s3_access_key: str
     vaultops_s3_secret_key: str
     vaultops_s3_signature_version: str = Field(default="s3v4", description="The signature version for the S3 bucket")
-    vaultops_s3_region: str = Field(description="The region of the S3 bucket")
+    vaultops_s3_region: str = Field(description="The region of the S3 bucket", default="main")
+    vaultops_s3_skip_region_validation: bool = Field(default=False, description="Whether to skip region validation")
+    vaultops_s3_s3_skip_metadata_api_check: bool = Field(
+        default=False, description="Whether to skip metadata API check"
+    )
+    vaultops_s3_skip_credentials_validation: bool = Field(
+        default=False, description="Whether to skip credentials validation"
+    )
+    vaultops_s3_skip_requesting_account_id: bool = Field(
+        default=False, description="Whether to skip requesting the account ID"
+    )
+    vaultops_s3_addressing_style: Literal["virtual", "path"] = Field(
+        default="virtual", description="The addressing style for the S3 bucket"
+    )
 
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
@@ -108,13 +127,14 @@ class VaultConfig(BaseSettings):
             "access_key": self.vaultops_s3_access_key,
             "secret_key": self.vaultops_s3_secret_key,
             "region": self.vaultops_s3_region,
-            "skip_credentials_validation": True,
-            "skip_metadata_api_check": True,
-            "skip_region_validation": True,
-            "skip_requesting_account_id": True,
-            "use_path_style": True,
+            "skip_credentials_validation": self.vaultops_s3_skip_credentials_validation,
+            "skip_metadata_api_check": self.vaultops_s3_s3_skip_metadata_api_check,
+            "skip_region_validation": self.vaultops_s3_skip_region_validation,
+            "skip_requesting_account_id": self.vaultops_s3_skip_requesting_account_id,
+            "use_path_style": self.vaultops_s3_addressing_style == "path",
             "encrypt": True,
             "sse_customer_key": self.vaultops_s3_aes256_sse_customer_key_base64,
+            "skip_s3_checksum": True,
         }
 
     def is_terraform_state_file_present(self) -> bool:
@@ -216,12 +236,20 @@ class VaultConfig(BaseSettings):
             verify=True,
         )
 
-        bucket_location: GetBucketLocationOutputTypeDef = __s3_client.get_bucket_location(
-            Bucket=self.vaultops_s3_bucket_name
-        )
+        if not self.vaultops_s3_skip_region_validation:
+            bucket_location: GetBucketLocationOutputTypeDef = __s3_client.get_bucket_location(
+                Bucket=self.vaultops_s3_bucket_name
+            )
+            if bucket_location.get("LocationConstraint", "") != self.vaultops_s3_region:
+                raise ValueError(
+                    f"Bucket Location: {bucket_location} does not match the region: {self.vaultops_s3_region}"
+                )
 
-        if bucket_location.get("LocationConstraint", "") != self.vaultops_s3_region:
-            raise ValueError(f"Bucket Location: {bucket_location} does not match the region: {self.vaultops_s3_region}")
+        get_bucket_versioning_response = __s3_client.get_bucket_versioning(
+            Bucket=self.vaultops_s3_bucket_name,
+        )
+        if get_bucket_versioning_response.get("Status", "") != "Enabled":
+            raise ValueError("Bucket Versioning is not enabled")
 
         if file_content:
             __s3_client.put_object(
@@ -246,6 +274,10 @@ class VaultConfig(BaseSettings):
             body: StreamingBody = response["Body"]
             return body.read().decode("utf-8")
         except Exception as e:
-            if (not error_on_missing_file) and ("The specified key does not exist" in str(e)):
+            if (
+                (not error_on_missing_file)
+                and isinstance(e, ClientError)
+                and e.response["Error"]["Code"] == "NoSuchKey"
+            ):
                 return None
             raise ValueError("Error reading file from S3") from e

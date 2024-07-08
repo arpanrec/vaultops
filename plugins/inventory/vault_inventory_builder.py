@@ -94,6 +94,32 @@ DOCUMENTATION = r"""
             description: S3 region.
             required: false
             type: str
+            default: main
+        vaultops_s3_skip_region_validation:
+            description: Skip region validation.
+            required: false
+            type: bool
+            default: false
+        vaultops_s3_skip_metadata_api_check:
+            description: Skip metadata API check.
+            required: false
+            type: bool
+            default: false
+        vaultops_s3_skip_credentials_validation:
+            description: Skip credentials validation.
+            required: false
+            type: bool
+            default: false
+        vaultops_s3_skip_requesting_account_id:
+            description: Skip requesting account ID.
+            required: false
+            type: bool
+            default: false
+        vaultops_s3_addressing_style:
+            description: S3 addressing style.
+            required: false
+            type: str
+            default: virtual
 """
 
 
