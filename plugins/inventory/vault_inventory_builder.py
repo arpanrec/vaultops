@@ -57,10 +57,6 @@ DOCUMENTATION = r"""
             description: Path to the temporary directory for storing Vault configuration files.
             required: true
             type: srt
-        vaultops_config_dir_path:
-            description: Path to the directory containing the Vault configuration file.
-            required: false
-            type: str
         vaultops_s3_aes256_sse_customer_key_base64:
             description:
                 - S3 server-side encryption customer key. (32 bytes base64 encoded key)

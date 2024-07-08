@@ -21,8 +21,6 @@ Make sure the `plugin`  is set to `vault_inventory_builder`.
 ```yaml
 ---
 plugin: vault_inventory_builder
-vaultops_tmp_dir_path: # TODO: The directory path to store the vault configuration files, Type: str
-vaultops_config_dir_path: # TODO: The directory path to store the vault configuration files, Type: str
 ```
 
 * You can change this file in [ansible.cfg](ansible.cfg#L2) file.
