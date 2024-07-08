@@ -148,7 +148,6 @@ class VaultConfig(BaseSettings, extra="allow"):
         return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])
 
     def storage_ops(self, **kwargs: Any) -> Optional[str]:
-
         """
         Wrapper function for storage operations.
         """
