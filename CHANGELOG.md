@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/arpanrec/vaultops/compare/2.0.0...2.1.0) (2024-07-08)
+
+
+### Features
+
+* Get Storage config from bitwarden bws ([789cabb](https://github.com/arpanrec/vaultops/commit/789cabb32c9720332e8e19f7c02819ef5ed44757))
+
 # [2.0.0](https://github.com/arpanrec/vaultops/compare/1.2.1...2.0.0) (2024-07-08)
 
 
