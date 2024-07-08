@@ -1,18 +1,12 @@
-import base64
 import ipaddress
 import os
 from typing import Any, Dict, Optional
 
-import boto3
 import yaml
-from botocore.config import Config
-from botocore.exceptions import ClientError
-from botocore.response import StreamingBody
-from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .backend import BackendConfig
+from .storage import StorageConfig, get_storage_config
 from .vault_secrets import VaultSecrets
 from .vault_server import VaultServer
 
@@ -23,27 +17,28 @@ class VaultConfig(BaseSettings, extra="allow"):
 
     Attributes:
         vaultops_tmp_dir_path (str): The root directory for storing temporary files.
-        vaultops_storage (BackendConfig): The backend for storing the Vault configuration.
+        vaultops_storage_bws_id (str): The Bitwarden ID for the storage backend.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
 
     vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
-    vaultops_storage: BackendConfig
+    vaultops_storage_bws_id: str = Field(description="The Bitwarden ID for the storage backend")
 
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
     __vault_terraform_state_key = "terraform.tfstate"
     __vault_raft_snapshot_key = "vault_raft_snapshot.snap"
     __vault_config_dict: Dict[str, Any] = {}
+    __vaultops_storage: StorageConfig
 
     def __init__(self, **data: Any):
         super().__init__(**data)
 
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
-
-        pre_requisites = yaml.safe_load(str(self.storage_ops(file_path=self.__vault_config_key)))
+        self.__vaultops_storage = get_storage_config(self.vaultops_storage_bws_id)
+        pre_requisites = yaml.safe_load(str(self.vaultops_storage.storage_ops(file_path=self.__vault_config_key)))
         self.__vault_config_dict.update(pre_requisites)
 
     @computed_field(return_type=Dict[str, VaultServer])  # type: ignore
@@ -90,13 +85,13 @@ class VaultConfig(BaseSettings, extra="allow"):
         Returns True if the Terraform state file is present; otherwise, returns False.
         """
         if state:
-            self.storage_ops(
+            self.vaultops_storage.storage_ops(
                 file_path=self.__vault_terraform_state_key,
                 file_content=state.encode("utf-8"),
                 content_type="application/json",
             )
             return state
-        con_str: Optional[str] = self.storage_ops(
+        con_str: Optional[str] = self.vaultops_storage.storage_ops(
             file_path=self.__vault_terraform_state_key,
             error_on_missing_file=False,
         )
@@ -111,13 +106,13 @@ class VaultConfig(BaseSettings, extra="allow"):
         """
 
         if unseal_keys:
-            self.storage_ops(
+            self.vaultops_storage.storage_ops(
                 file_path=self.__vault_unseal_keys_key,
                 file_content=yaml.dump(unseal_keys).encode("utf-8"),
                 content_type="text/yaml",
             )
             return unseal_keys
-        con_str: Optional[str] = self.storage_ops(
+        con_str: Optional[str] = self.vaultops_storage.storage_ops(
             file_path=self.__vault_unseal_keys_key,
             error_on_missing_file=False,
         )
@@ -133,7 +128,7 @@ class VaultConfig(BaseSettings, extra="allow"):
             snapshot: The Raft snapshot to save.
         """
         if isinstance(snapshot, bytes):
-            self.storage_ops(
+            self.vaultops_storage.storage_ops(
                 file_path=self.__vault_raft_snapshot_key,
                 file_content=snapshot,
                 content_type="application/octet-stream",
@@ -153,74 +148,12 @@ class VaultConfig(BaseSettings, extra="allow"):
 
         return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])
 
-    def storage_ops(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        file_path: str,
-        file_content: Optional[bytes] = None,
-        content_type="text/plain",
-        content_encoding="utf-8",
-        content_language="en",
-        error_on_missing_file: bool = True,
-    ) -> Optional[str]:
+    @computed_field(return_type=StorageConfig)  # type: ignore
+    @property
+    def vaultops_storage(self) -> StorageConfig:
         """
-        Perform storage operations.
-        Args:
-            file_path: Path of the file.
-            file_content: Content of the file.
-            content_type: Type of the content.
-            content_encoding: Encoding of the content.
-            content_language: Language of the content.
-            error_on_missing_file: Whether to raise an error if the file is missing.
-        Returns:
-            Optional[str]: The content of the file.
+        Wrapper function for storage operations.
         """
-        vaultops_s3_aes256_sse_customer_key = base64.b64decode(
-            self.vaultops_storage.vaultops_s3_aes256_sse_customer_key_base64
-        ).decode("utf-8")
-        __s3_client = boto3.client(
-            service_name="s3",
-            endpoint_url=self.vaultops_storage.vaultops_s3_endpoint_url,
-            aws_access_key_id=self.vaultops_storage.vaultops_s3_access_key,
-            aws_secret_access_key=self.vaultops_storage.vaultops_s3_secret_key,
-            aws_session_token=None,
-            config=Config(
-                signature_version=self.vaultops_storage.vaultops_s3_signature_version,
-                retries={"max_attempts": 3, "mode": "standard"},
-            ),
-            verify=True,
-        )
-
-        get_bucket_versioning_response = __s3_client.get_bucket_versioning(
-            Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
-        )
-        if get_bucket_versioning_response.get("Status", "") != "Enabled":
-            raise ValueError("Bucket Versioning is not enabled")
-
-        if file_content:
-            __s3_client.put_object(
-                Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
-                Key=file_path,
-                Body=file_content,
-                ContentType=content_type,
-                ContentEncoding=content_encoding,
-                ContentLanguage=content_language,
-                SSECustomerAlgorithm="AES256",
-                SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
-            )
-            return ""
-        try:
-            response: GetObjectOutputTypeDef = __s3_client.get_object(
-                Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
-                Key=file_path,
-                SSECustomerAlgorithm="AES256",
-                SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
-                ChecksumMode="ENABLED",
-            )
-            body: StreamingBody = response["Body"]
-            return body.read().decode("utf-8")
-        except ClientError as e:
-            if (not error_on_missing_file) and e.response["Error"]["Code"] == "NoSuchKey":
-                return None
-            raise ValueError("S3 Client Error") from e
-        except Exception as e:
-            raise ValueError("Error reading file from S3") from e
+        if not self.__vaultops_storage:
+            self.__vaultops_storage = get_storage_config(self.vaultops_storage_bws_id)
+        return self.__vaultops_storage

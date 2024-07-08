@@ -4,8 +4,10 @@
   gather_facts: false
   become: false
   no_log: "{{ pv_global_config_no_log | default('true') }}"
+  tags: vault,vault_system_install,vault_dr,never
   tasks:
       - name: Vaultops | Prepare | Download Vault binary
+        when: false # Move to s3
         ansible.builtin.get_url:
             dest: "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ item.key }}.zip"
             mode: "0o644"
@@ -13,7 +15,67 @@
             url: "https://releases.hashicorp.com/vault/{{ vault_rv_version }}/\
                 vault_{{ vault_rv_version }}_linux_{{ item.value['vault_arch'] }}.zip"
         loop: "{{ pv_vault_info_map | dict2items }}"
-        tags: vault,vault_system_install,vault_dr,never
+
+      - name: Vaultops | Prepare | Download Vault binary
+        when: false # TODO: Unable to download encrypted files from S3
+        amazon.aws.s3_object:
+            bucket: "{{ vaultops_s3_bucket_name }}"
+            encrypt: true
+            encryption_mode: AES256
+            encryption_kms_key_id: "{{ vaultops_s3_aes256_sse_customer_key_base64 }}"
+            access_key: "{{ vaultops_s3_access_key }}"
+            secret_key: "{{ vaultops_s3_secret_key }}"
+            region: "{{ vaultops_s3_region }}"
+            sig_v4: "{{ (vaultops_s3_signature_version == 's3v4') | ternary(true, false) }}"
+            object: "bin/{{ vault_rv_version }}/vault_{{ vault_rv_version }}_linux_{{ item.value['vault_arch'] }}.zip"
+            dest: "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ item.key }}.zip"
+            endpoint_url: "{{ vaultops_s3_endpoint_url }}"
+            mode: get
+            aws_config:
+                signature_version: "{{ vaultops_s3_signature_version }}"
+            headers:
+                x-amz-server-side-encryption-customer-algorithm: AES256
+                x-amz-server-side​-encryption​-customer-key: "{{ vaultops_s3_aes256_sse_customer_key_base64 |
+                    b64decode }}"
+                x-amz-server-side​-encryption​-customer-key-MD5: "{{ vaultops_s3_aes256_sse_customer_key_base64 |
+                    b64decode | md5 }}"
+                x-amz-content-sha256: "{{ item.value['sha256sum'][vault_rv_version] }}"
+        loop: "{{ pv_vault_info_map | dict2items }}"
+
+      - name: Vaultops | Prepare | Download Vault binary
+        # TODO: Unable to download encrypted files from S3 using amazon.aws.s3_object therefore using s4cmd
+        ansible.builtin.command:
+            argv:
+                - s4cmd
+                - get
+                - --endpoint-url={{ vaultops_s3_endpoint_url }}
+                - --API-SSECustomerAlgorithm=AES256
+                - --API-SSECustomerKey={{ vaultops_s3_aes256_sse_customer_key_base64 | b64decode }}
+                # - --API-SSECustomerKeyMD5={{ vaultops_s3_aes256_sse_customer_key_base64 | b64decode | md5 }}
+                # TODO: SSECustomerKeyMD5 Not working
+                - "s3://{{ vaultops_s3_bucket_name }}/bin/{{ vault_rv_version }}/vault_{{ vault_rv_version }}_linux_\
+                  {{ item.value['vault_arch'] }}.zip"
+                - "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ item.key }}.zip"
+            creates: "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ item.key }}.zip"
+        environment:
+            S3_ACCESS_KEY: "{{ vaultops_s3_access_key }}"
+            S3_SECRET_KEY: "{{ vaultops_s3_secret_key }}"
+        loop: "{{ pv_vault_info_map | dict2items }}"
+
+      - name: Vaultops | Prepare | Validate sha256sum
+        ansible.builtin.stat:
+            path: "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ item.key }}.zip"
+            checksum_algorithm: sha256
+            get_checksum: true
+            follow: false
+            get_mime: false
+            get_attributes: true
+        loop: "{{ pv_vault_info_map | dict2items }}"
+        register: vault_binary_stat
+        failed_when: >-
+            vault_binary_stat.failed
+            or
+            vault_binary_stat.stat.checksum != item.value['sha256sum'][vault_rv_version]
 
 - name: Vaultops | Add Host Keys
   hosts: vault_vm_servers,vault_nodes_servers

@@ -9,6 +9,24 @@ Look for the word `TODO` in the file, and change the value to your value.
 * [Python 3.10](https://www.python.org/downloads/release/python-3100/) or higher installed
   * [Poetry - PYTHON PACKAGING AND DEPENDENCY MANAGEMENT MADE EASY](https://python-poetry.org/)
 * [Terraform](https://www.terraform.io/downloads.html) installed
+* Bitwarden BWS secret manger
+  * [Secrets Manager](https://bitwarden.com/help/secrets-manager-cli/)
+  * In order to store the storage access keys, you need to have a secret manager.
+  * Set the BWS_ACCESS_TOKEN environment variable to the Bitwarden access token.
+    * Storage System Configuration
+      * In order to store the vault configuration files, you need to have a storage system.
+
+      ```json
+        {
+            "vaultops_s3_aes256_sse_customer_key_base64": "base64-encoded-key",
+            "vaultops_s3_bucket_name": "bucket-name",
+            "vaultops_s3_endpoint_url": "endpoint-url",
+            "vaultops_s3_access_key": "access-key",
+            "vaultops_s3_secret_key": "secret-key",
+            "vaultops_s3_signature_version": "signature-version",
+            "vaultops_s3_region": "region"
+        }
+      ```
 
 ## [Inventory File](inventory.yml)
 
@@ -21,14 +39,8 @@ Make sure the `plugin`  is set to `vault_inventory_builder`.
 ```yaml
 ---
 plugin: vault_inventory_builder
-vaultops_tmp_dir_path: # TODO: The temporary directory path, Type: str
-vaultops_storage:
-    vaultops_s3_aes256_sse_customer_key_base64: # TODO: The base64 encoded AES256 SSE customer key, `CMD: tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 32 | base64`, Type: str
-    vaultops_s3_bucket_name: # TODO: The name of the S3 bucket, Type: str
-    vaultops_s3_endpoint_url: # TODO: The endpoint URL of the S3 bucket, Type: str
-    vaultops_s3_access_key: # TODO: The access key of the S3 bucket, Type: str
-    vaultops_s3_secret_key: # TODO: The secret key of the S3 bucket, Type: str
-    vaultops_s3_region: # TODO: The region of the S3 bucket, Type: str
+vaultops_tmp_dir_path: # TODO: The temporary directory path., Type: str
+vaultops_storage_bws_id: # TODO: Bitwarden ID for the storage of Vault configuration files. Set `BWS_ACCESS_TOKEN` environment variable., Type: str
 ```
 
 * You can change this file in [ansible.cfg](ansible.cfg#L2) file.
