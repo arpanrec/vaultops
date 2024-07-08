@@ -60,7 +60,7 @@ DOCUMENTATION = r"""
         vaultops_s3_aes256_sse_customer_key_base64:
             description:
                 - S3 server-side encryption customer key. (32 bytes base64 encoded key)
-                - For example to create a new key: `tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 32 | base64`
+                - "For example to create a new key: `tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 32 | base64`"
             required: true
             type: str
         vaultops_s3_bucket_name:
@@ -130,6 +130,7 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group(self.ansible_vault_node_servers_group_name)
         ansible_inventory_dict = self._read_config_data(path)
         vault_config: VaultConfig = build_vault_config(ansible_inventory_dict)
+        print(vault_config)
         vault_secrets: VaultSecrets = vault_config.vault_secrets
 
         vault_vm_server_ssh_user_known_hosts_file = os.path.join(
