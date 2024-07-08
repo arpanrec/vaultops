@@ -134,7 +134,7 @@ class VaultConfig(BaseSettings, extra="allow"):
             "use_path_style": self.vaultops_s3_addressing_style == "path",
             "encrypt": True,
             "sse_customer_key": self.vaultops_s3_aes256_sse_customer_key_base64,
-            "skip_s3_checksum": True,
+            "skip_s3_checksum": True,  # TODO: Need to check, why not working in linode object storage
         }
 
     def is_terraform_state_file_present(self) -> bool:
