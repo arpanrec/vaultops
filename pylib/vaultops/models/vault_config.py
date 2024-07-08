@@ -1,5 +1,4 @@
 import base64
-import hashlib
 import ipaddress
 import os
 from typing import Any, Dict, Optional
@@ -8,11 +7,7 @@ import boto3
 import yaml
 from botocore.config import Config
 from botocore.response import StreamingBody
-from mypy_boto3_s3.client import S3Client
-from mypy_boto3_s3.type_defs import (
-    GetBucketLocationOutputTypeDef,
-    GetObjectOutputTypeDef,
-)
+from mypy_boto3_s3.type_defs import GetBucketLocationOutputTypeDef, GetObjectOutputTypeDef
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -52,7 +47,6 @@ class VaultConfig(BaseSettings):
     __vault_terraform_state_key = "terraform.tfstate"
     __vault_raft_snapshot_key = "vault_raft_snapshot.snap"
     __vault_config_dict: Dict[str, Any] = {}
-    __s3_client: S3Client
 
     def __init__(self, **data: Any):
         super().__init__(**data)
@@ -60,79 +54,8 @@ class VaultConfig(BaseSettings):
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
 
-        self.__s3_client = boto3.client(
-            service_name="s3",
-            endpoint_url=self.vaultops_s3_endpoint_url,
-            aws_access_key_id=self.vaultops_s3_access_key,
-            aws_secret_access_key=self.vaultops_s3_secret_key,
-            aws_session_token=None,
-            config=Config(
-                signature_version=self.vaultops_s3_signature_version, retries={"max_attempts": 3, "mode": "standard"}
-            ),
-            verify=True,
-        )
-
-        bucket_location: GetBucketLocationOutputTypeDef = self.__s3_client.get_bucket_location(
-            Bucket=self.vaultops_s3_bucket_name
-        )
-
-        if bucket_location.get("LocationConstraint", "") != self.vaultops_s3_region:
-            raise ValueError(f"Bucket Location: {bucket_location} does not match the region: {self.vaultops_s3_region}")
-
-        pre_requisites = yaml.safe_load(self.__read_s3(self.__vault_config_key))
+        pre_requisites = yaml.safe_load(str(self.storage_ops(file_path=self.__vault_config_key)))
         self.__vault_config_dict.update(pre_requisites)
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vaultops_s3_aes256_sse_customer_key(self) -> str:
-        """
-        Returns the AES256 key for the S3 bucket.
-
-        Returns:
-            str: The AES256 key for the S3 bucket.
-        """
-        return base64.b64decode(self.vaultops_s3_aes256_sse_customer_key_base64).decode("utf-8")
-
-    def __read_s3(self, key: str) -> str:
-        """
-        Reads the file from the S3 bucket.
-
-        Args:
-            key (str): The key of the file to read.
-
-        Returns:
-            str: The content of the file.
-        """
-        response: GetObjectOutputTypeDef = self.__s3_client.get_object(
-            Bucket=self.vaultops_s3_bucket_name,
-            Key=key,
-            SSECustomerAlgorithm="AES256",
-            SSECustomerKey=self.vaultops_s3_aes256_sse_customer_key,
-            ChecksumMode="ENABLED",
-        )
-        body: StreamingBody = response["Body"]
-        return body.read().decode("utf-8")
-
-    def __write_s3(  # pylint: disable=too-many-arguments
-        self, key: str, content: bytes, content_type: str, content_encoding: str = "utf-8", content_language: str = "en"
-    ) -> None:
-        sha256_hash: str = base64.b64encode(hashlib.sha256(content).digest()).decode("utf-8")
-        md5_hash: str = base64.b64encode(hashlib.md5(content).digest()).decode("utf-8")
-        self.__s3_client.put_object(
-            Bucket=self.vaultops_s3_bucket_name,
-            Key=key,
-            Body=content,
-            Metadata={},
-            ContentType=content_type,
-            ContentEncoding=content_encoding,
-            ContentLanguage=content_language,
-            ACL="private",
-            ChecksumSHA256=sha256_hash,
-            ContentMD5=md5_hash,
-            SSECustomerAlgorithm="AES256",
-            SSECustomerKey=self.vaultops_s3_aes256_sse_customer_key,
-            ContentLength=len(content),
-        )
 
     @computed_field(return_type=Dict[str, VaultServer])  # type: ignore
     @property
@@ -194,6 +117,18 @@ class VaultConfig(BaseSettings):
             "sse_customer_key": self.vaultops_s3_aes256_sse_customer_key_base64,
         }
 
+    def is_terraform_state_file_present(self) -> bool:
+        """
+        Returns True if the Terraform state file is present; otherwise, returns False.
+        """
+        con_str: Optional[str] = self.storage_ops(
+            file_path=self.__vault_terraform_state_key,
+            error_on_missing_file=False,
+        )
+        if not con_str:
+            return False
+        return True
+
     def unseal_keys(self, unseal_keys: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, str]]:
         """
         Returns the Vault unseal keys.
@@ -202,16 +137,20 @@ class VaultConfig(BaseSettings):
             Dict[str, str]: The Vault unseal keys.
         """
 
-        if unseal_keys is not None:
-            self.__write_s3(self.__vault_unseal_keys_key, yaml.dump(unseal_keys).encode("utf-8"), "text/yaml")
+        if unseal_keys:
+            self.storage_ops(
+                file_path=self.__vault_unseal_keys_key,
+                file_content=yaml.dump(unseal_keys).encode("utf-8"),
+                content_type="text/yaml",
+            )
             return unseal_keys
-
-        try:
-            return yaml.safe_load(self.__read_s3(self.__vault_unseal_keys_key))
-        except Exception as e:
-            if "The specified key does not exist" in str(e):
-                return None
-            raise ValueError("Error occurred while reading unseal") from e
+        con_str: Optional[str] = self.storage_ops(
+            file_path=self.__vault_unseal_keys_key,
+            error_on_missing_file=False,
+        )
+        if not con_str:
+            return None
+        return yaml.safe_load(str(con_str))
 
     def save_raft_snapshot(self, snapshot: bytes) -> None:
         """
@@ -220,9 +159,12 @@ class VaultConfig(BaseSettings):
         Args:
             snapshot: The Raft snapshot to save.
         """
-        print("snapshot: ", type(snapshot))
         if isinstance(snapshot, bytes):
-            self.__write_s3(self.__vault_raft_snapshot_key, snapshot, "application/octet-stream")
+            self.storage_ops(
+                file_path=self.__vault_raft_snapshot_key,
+                file_content=snapshot,
+                content_type="application/octet-stream",
+            )
         else:
             raise ValueError("Snapshot must be a bytes object")
 
@@ -237,3 +179,73 @@ class VaultConfig(BaseSettings):
         """
 
         return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])
+
+    def storage_ops(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        file_path: str,
+        file_content: Optional[bytes] = None,
+        content_type="text/plain",
+        content_encoding="utf-8",
+        content_language="en",
+        error_on_missing_file: bool = True,
+    ) -> Optional[str]:
+        """
+        Perform storage operations.
+        Args:
+            file_path: Path of the file.
+            file_content: Content of the file.
+            content_type: Type of the content.
+            content_encoding: Encoding of the content.
+            content_language: Language of the content.
+            error_on_missing_file: Whether to raise an error if the file is missing.
+        Returns:
+            Optional[str]: The content of the file.
+        """
+        vaultops_s3_aes256_sse_customer_key = base64.b64decode(self.vaultops_s3_aes256_sse_customer_key_base64).decode(
+            "utf-8"
+        )
+        __s3_client = boto3.client(
+            service_name="s3",
+            endpoint_url=self.vaultops_s3_endpoint_url,
+            aws_access_key_id=self.vaultops_s3_access_key,
+            aws_secret_access_key=self.vaultops_s3_secret_key,
+            aws_session_token=None,
+            config=Config(
+                signature_version=self.vaultops_s3_signature_version, retries={"max_attempts": 3, "mode": "standard"}
+            ),
+            verify=True,
+        )
+
+        bucket_location: GetBucketLocationOutputTypeDef = __s3_client.get_bucket_location(
+            Bucket=self.vaultops_s3_bucket_name
+        )
+
+        if bucket_location.get("LocationConstraint", "") != self.vaultops_s3_region:
+            raise ValueError(f"Bucket Location: {bucket_location} does not match the region: {self.vaultops_s3_region}")
+
+        if file_content:
+            __s3_client.put_object(
+                Bucket=self.vaultops_s3_bucket_name,
+                Key=file_path,
+                Body=file_content,
+                ContentType=content_type,
+                ContentEncoding=content_encoding,
+                ContentLanguage=content_language,
+                SSECustomerAlgorithm="AES256",
+                SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
+            )
+            return ""
+        try:
+            response: GetObjectOutputTypeDef = __s3_client.get_object(
+                Bucket=self.vaultops_s3_bucket_name,
+                Key=file_path,
+                SSECustomerAlgorithm="AES256",
+                SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
+                ChecksumMode="ENABLED",
+            )
+            body: StreamingBody = response["Body"]
+            return body.read().decode("utf-8")
+        except Exception as e:
+            if (not error_on_missing_file) and ("The specified key does not exist" in str(e)):
+                return None
+            raise ValueError("Error reading file from S3") from e
