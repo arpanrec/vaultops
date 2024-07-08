@@ -49,8 +49,6 @@ def terraform_apply(
         vault_config.vaultops_tmp_dir_path,
     )
 
-    # return_code, stdout, stderr = tf.init(backend_config=backend_tf_vars, reconfigure=False)
-
     return_code, stdout, stderr = tf.init(
         reconfigure=False, backend_config=f"{vault_config.vaultops_tmp_dir_path}/backend.auto.tfvars.json"
     )

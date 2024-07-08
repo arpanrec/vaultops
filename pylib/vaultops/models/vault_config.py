@@ -7,7 +7,6 @@ from typing import Any, Dict, Optional
 import boto3
 import yaml
 from botocore.config import Config
-from botocore import errorfactory
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_s3.type_defs import GetBucketLocationOutputTypeDef
 from pydantic import Field, computed_field
@@ -166,14 +165,15 @@ class VaultConfig(BaseSettings):
         return {
             "bucket": self.vaultops_s3_bucket_name,
             "key": self.__vault_terraform_state_key,
-            "endpoint": self.vaultops_s3_endpoint_url,
+            "endpoints": {"s3": self.vaultops_s3_endpoint_url},
             "access_key": self.vaultops_s3_access_key,
             "secret_key": self.vaultops_s3_secret_key,
             "region": self.vaultops_s3_region,
             "skip_credentials_validation": True,
             "skip_metadata_api_check": True,
             "skip_region_validation": True,
-            "force_path_style": True,
+            "skip_requesting_account_id": True,
+            "use_path_style": True,
         }
 
     def unseal_keys(self, unseal_keys: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, str]]:
@@ -189,13 +189,11 @@ class VaultConfig(BaseSettings):
             return unseal_keys
 
         try:
-            yaml.safe_load(self.__read_s3_str(self.__vault_unseal_keys_key))
-        except errorfactory.NoSuchKey:
-            return None
+            return yaml.safe_load(self.__read_s3_str(self.__vault_unseal_keys_key))
         except Exception as e:
-            raise e
-
-        return
+            if 'The specified key does not exist' in str(e):
+                return None
+            raise ValueError("Error occurred while reading unseal") from e
 
     def save_raft_snapshot(self, snapshot: Any) -> None:
         """
