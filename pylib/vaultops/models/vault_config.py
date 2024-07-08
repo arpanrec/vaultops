@@ -74,10 +74,21 @@ class VaultConfig(BaseSettings):
         if bucket_location.get("LocationConstraint", "") != self.vaultops_s3_region:
             raise ValueError(f"Bucket Location: {bucket_location} does not match the region: {self.vaultops_s3_region}")
 
-        pre_requisites = yaml.safe_load(self.__read_s3_str(self.__vault_config_key))
+        pre_requisites = yaml.safe_load(self.__read_s3(self.__vault_config_key))
         self.__vault_config_dict.update(pre_requisites)
 
-    def __read_s3_str(self, key: str) -> str:
+    @computed_field(return_type=str)  # type: ignore
+    @property
+    def vaultops_s3_aes256_sse_customer_key(self) -> str:
+        """
+        Returns the AES256 key for the S3 bucket.
+
+        Returns:
+            str: The AES256 key for the S3 bucket.
+        """
+        return base64.b64decode(self.vaultops_s3_aes256_sse_customer_key_base64).decode("utf-8")
+
+    def __read_s3(self, key: str) -> str:
         """
         Reads the file from the S3 bucket.
 
@@ -87,25 +98,24 @@ class VaultConfig(BaseSettings):
         Returns:
             str: The content of the file.
         """
-        sse_customer_key: str = base64.b64decode(self.vaultops_s3_aes256_sse_customer_key_base64).decode("utf-8")
         response = self.__s3_client.get_object(
             Bucket=self.vaultops_s3_bucket_name,
             Key=key,
             SSECustomerAlgorithm="AES256",
-            SSECustomerKey=sse_customer_key,
+            SSECustomerKey=self.vaultops_s3_aes256_sse_customer_key,
             ChecksumMode="ENABLED",
         )
         return response["Body"].read().decode("utf-8")
 
-    def __write_s3_string(  # pylint: disable=too-many-arguments
-        self, key: str, content: str, content_type: str, content_encoding: str = "utf-8", content_language: str = "en"
+    def __write_s3(  # pylint: disable=too-many-arguments
+        self, key: str, content: bytes, content_type: str, content_encoding: str = "utf-8", content_language: str = "en"
     ) -> None:
-        sha256_hash: str = base64.b64encode(hashlib.sha256(content.encode("utf-8")).digest()).decode("utf-8")
-        md5_hash: str = base64.b64encode(hashlib.md5(content.encode("utf-8")).digest()).decode("utf-8")
+        sha256_hash: str = base64.b64encode(hashlib.sha256(content).digest()).decode("utf-8")
+        md5_hash: str = base64.b64encode(hashlib.md5(content).digest()).decode("utf-8")
         self.__s3_client.put_object(
             Bucket=self.vaultops_s3_bucket_name,
             Key=key,
-            Body=content.encode("utf-8"),
+            Body=content,
             Metadata={},
             ContentType=content_type,
             ContentEncoding=content_encoding,
@@ -114,7 +124,7 @@ class VaultConfig(BaseSettings):
             ChecksumSHA256=sha256_hash,
             ContentMD5=md5_hash,
             SSECustomerAlgorithm="AES256",
-            SSECustomerKey=self.vaultops_s3_aes256_sse_customer_key_base64,
+            SSECustomerKey=self.vaultops_s3_aes256_sse_customer_key,
             ContentLength=len(content),
         )
 
@@ -174,6 +184,8 @@ class VaultConfig(BaseSettings):
             "skip_region_validation": True,
             "skip_requesting_account_id": True,
             "use_path_style": True,
+            "encrypt": True,
+            "sse_customer_key": self.vaultops_s3_aes256_sse_customer_key_base64,
         }
 
     def unseal_keys(self, unseal_keys: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, str]]:
@@ -185,24 +197,28 @@ class VaultConfig(BaseSettings):
         """
 
         if unseal_keys is not None:
-            self.__write_s3_string(self.__vault_unseal_keys_key, yaml.dump(unseal_keys), "text/yaml")
+            self.__write_s3(self.__vault_unseal_keys_key, yaml.dump(unseal_keys).encode("utf-8"), "text/yaml")
             return unseal_keys
 
         try:
-            return yaml.safe_load(self.__read_s3_str(self.__vault_unseal_keys_key))
+            return yaml.safe_load(self.__read_s3(self.__vault_unseal_keys_key))
         except Exception as e:
-            if 'The specified key does not exist' in str(e):
+            if "The specified key does not exist" in str(e):
                 return None
             raise ValueError("Error occurred while reading unseal") from e
 
-    def save_raft_snapshot(self, snapshot: Any) -> None:
+    def save_raft_snapshot(self, snapshot: bytes) -> None:
         """
         Saves the Raft snapshot to the specified file path.
 
         Args:
             snapshot: The Raft snapshot to save.
         """
-        return None
+        print("snapshot: ", snapshot, type(snapshot))
+        if isinstance(snapshot, bytes):
+            self.__write_s3(self.__vault_config_key, snapshot, "application/octet-stream")
+
+        raise ValueError("Snapshot must be a bytes object")
 
     @computed_field(return_type=VaultSecrets)  # type: ignore
     @property
