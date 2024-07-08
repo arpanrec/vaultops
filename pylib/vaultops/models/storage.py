@@ -166,6 +166,17 @@ def get_storage_config(bws_id: str) -> StorageConfig:
             }
         )
     )
-    __bitwarden_client.access_token_login(os.environ["BWS_ACCESS_TOKEN"])
-    secrets_value_json = __bitwarden_client.secrets().get(bws_id).data.value
+    bws_access_token = os.getenv("BWS_ACCESS_TOKEN", default=None)
+    if not bws_access_token or len(bws_access_token) == 0:
+        raise ValueError("BWS_ACCESS_TOKEN is not set, please set the BWS_ACCESS_TOKEN environment variable"
+                         " in order to access the Bitwarden secrets.")
+    __bitwarden_client.access_token_login(bws_access_token)
+
+    try:
+        secrets_value_json = __bitwarden_client.secrets().get(bws_id).data.value
+    except Exception as e:
+        raise ValueError(
+            "Error fetching secrets from Bitwarden BWS, Check if the BWS ID is correct"
+        ) from e
+
     return StorageConfig(**json.loads(secrets_value_json))
