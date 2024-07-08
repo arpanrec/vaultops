@@ -6,7 +6,7 @@ import yaml
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .storage import StorageConfig
+from .storage import StorageConfig, get_storage_config
 from .vault_secrets import VaultSecrets
 from .vault_server import VaultServer
 
@@ -17,13 +17,13 @@ class VaultConfig(BaseSettings, extra="allow"):
 
     Attributes:
         vaultops_tmp_dir_path (str): The root directory for storing temporary files.
-        vaultops_storage (StorageConfig): The backend for storing the Vault configuration.
+        vaultops_storage_bws_id (str): The Bitwarden ID for the storage backend.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
 
     vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
-    vaultops_storage: StorageConfig
+    vaultops_storage_bws_id: str = Field(description="The Bitwarden ID for the storage backend")
 
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
@@ -37,7 +37,7 @@ class VaultConfig(BaseSettings, extra="allow"):
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
 
-        pre_requisites = yaml.safe_load(str(self.storage_ops(file_path=self.__vault_config_key)))
+        pre_requisites = yaml.safe_load(str(self.vaultops_storage.storage_ops(file_path=self.__vault_config_key)))
         self.__vault_config_dict.update(pre_requisites)
 
     @computed_field(return_type=Dict[str, VaultServer])  # type: ignore
@@ -84,13 +84,13 @@ class VaultConfig(BaseSettings, extra="allow"):
         Returns True if the Terraform state file is present; otherwise, returns False.
         """
         if state:
-            self.storage_ops(
+            self.vaultops_storage.storage_ops(
                 file_path=self.__vault_terraform_state_key,
                 file_content=state.encode("utf-8"),
                 content_type="application/json",
             )
             return state
-        con_str: Optional[str] = self.storage_ops(
+        con_str: Optional[str] = self.vaultops_storage.storage_ops(
             file_path=self.__vault_terraform_state_key,
             error_on_missing_file=False,
         )
@@ -105,13 +105,13 @@ class VaultConfig(BaseSettings, extra="allow"):
         """
 
         if unseal_keys:
-            self.storage_ops(
+            self.vaultops_storage.storage_ops(
                 file_path=self.__vault_unseal_keys_key,
                 file_content=yaml.dump(unseal_keys).encode("utf-8"),
                 content_type="text/yaml",
             )
             return unseal_keys
-        con_str: Optional[str] = self.storage_ops(
+        con_str: Optional[str] = self.vaultops_storage.storage_ops(
             file_path=self.__vault_unseal_keys_key,
             error_on_missing_file=False,
         )
@@ -127,7 +127,7 @@ class VaultConfig(BaseSettings, extra="allow"):
             snapshot: The Raft snapshot to save.
         """
         if isinstance(snapshot, bytes):
-            self.storage_ops(
+            self.vaultops_storage.storage_ops(
                 file_path=self.__vault_raft_snapshot_key,
                 file_content=snapshot,
                 content_type="application/octet-stream",
@@ -147,8 +147,10 @@ class VaultConfig(BaseSettings, extra="allow"):
 
         return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])
 
-    def storage_ops(self, **kwargs: Any) -> Optional[str]:
+    @computed_field(return_type=StorageConfig)  # type: ignore
+    @property
+    def vaultops_storage(self) -> StorageConfig:
         """
         Wrapper function for storage operations.
         """
-        return self.vaultops_storage.storage_ops(**kwargs)
+        return get_storage_config(self.vaultops_storage_bws_id)

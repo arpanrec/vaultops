@@ -1,6 +1,7 @@
 import base64
+import json
 import os
-from typing import Any, Optional
+from typing import Optional
 
 import boto3
 from ansible.inventory.data import InventoryData  # type: ignore
@@ -8,7 +9,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
-from pydantic import Field, BaseModel, computed_field
+from pydantic import Field, BaseModel
 from bitwarden_sdk import BitwardenClient, DeviceType, client_settings_from_dict  # type: ignore
 
 
@@ -16,127 +17,37 @@ class StorageConfig(BaseModel):
     """
     Represents the secrets required for interacting with HashiCorp Vault.
 
+    Bitwarden Secrets entry:
+        {
+            "vaultops_s3_aes256_sse_customer_key_base64": "base64-encoded-key",
+            "vaultops_s3_bucket_name": "bucket-name",
+            "vaultops_s3_endpoint_url": "endpoint-url",
+            "vaultops_s3_access_key": "access-key",
+            "vaultops_s3_secret_key": "secret-key",
+            "vaultops_s3_signature_version": "signature-version",
+            "vaultops_s3_region": "region"
+        }
+
     Attributes:
-        vaultops_s3_aes256_sse_customer_key_base64_bws_id (str):
-            - BWS ID: The base64-encoded AES256 key for the S3 bucket.
-        vaultops_s3_bucket_name_bws_id (str): BWS ID: The name of the S3 bucket.
-        vaultops_s3_endpoint_url_bws_id (str): BWS ID: The endpoint URL of the S3 bucket.
-        vaultops_s3_access_key_bws_id (str): BWS ID: The access key for the S3 bucket.
-        vaultops_s3_secret_key_bws_id (str): BWS ID: The secret key for the S3 bucket.
-        vaultops_s3_signature_version_bws_id BWS ID: (str): The signature version for the S3 bucket.
-        vaultops_s3_region_bws_id (str): BWS ID: The region of the S3 bucket.
+        vaultops_s3_aes256_sse_customer_key_base64 (str):
+            - The base64-encoded AES256 key for the S3 bucket.
+        vaultops_s3_bucket_name (str): The name of the S3 bucket.
+        vaultops_s3_endpoint_url (str): The endpoint URL of the S3 bucket.
+        vaultops_s3_access_key (str): The access key for the S3 bucket.
+        vaultops_s3_secret_key (str): The secret key for the S3 bucket.
+        vaultops_s3_signature_version (str): The signature version for the S3 bucket.
+        vaultops_s3_region (str): The region of the S3 bucket.
     """
 
-    vaultops_s3_aes256_sse_customer_key_base64_bws_id: str = Field(
-        description="BWS ID: The base64-encoded AES256 key for the S3 bucket"
+    vaultops_s3_aes256_sse_customer_key_base64: str = Field(
+        description="The base64-encoded AES256 key for the S3 bucket"
     )
-    vaultops_s3_bucket_name_bws_id: str = Field(description="BWS ID: The name of the S3 bucket")
-    vaultops_s3_endpoint_url_bws_id: str = Field(description="BWS ID: The endpoint URL of the S3 bucket")
-    vaultops_s3_access_key_bws_id: str = Field(description="BWS ID: The access key for the S3 bucket")
-    vaultops_s3_secret_key_bws_id: str = Field(description="BWS ID: The secret key for the S3 bucket")
-    vaultops_s3_signature_version_bws_id: str = Field(description="BWS ID: The signature version for the S3 bucket")
-    vaultops_s3_region_bws_id: str = Field(description="BWS ID: The region of the S3 bucket")
-
-    __bitwarden_client: BitwardenClient
-
-    def __init__(self, **data: Any):
-        super().__init__(**data)
-
-        self.__bitwarden_client = BitwardenClient(
-            client_settings_from_dict(
-                {
-                    "apiUrl": os.getenv("API_URL", "https://api.bitwarden.com"),
-                    "deviceType": DeviceType.SDK,
-                    "identityUrl": os.getenv("IDENTITY_URL", "https://identity.bitwarden.com"),
-                    "userAgent": "Python",
-                }
-            )
-        )
-        self.__bitwarden_client.access_token_login(os.environ["BWS_ACCESS_TOKEN"])
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vaultops_s3_aes256_sse_customer_key_base64(self) -> str:
-        """
-        Returns the AES256 key for the S3 bucket.
-
-        Returns:
-            str: The AES256 key for the S3 bucket.
-        """
-
-        return self.__bitwarden_client.secrets().get(self.vaultops_s3_aes256_sse_customer_key_base64_bws_id).data.value
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vaultops_s3_bucket_name(self) -> str:
-        """
-        Returns the name of the S3 bucket.
-
-        Returns:
-            str: The name of the S3 bucket.
-        """
-
-        return self.__bitwarden_client.secrets().get(self.vaultops_s3_bucket_name_bws_id).data.value
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vaultops_s3_endpoint_url(self) -> str:
-        """
-        Returns the endpoint URL of the S3 bucket.
-
-        Returns:
-            str: The endpoint URL of the S3 bucket.
-        """
-
-        return self.__bitwarden_client.secrets().get(self.vaultops_s3_endpoint_url_bws_id).data.value
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vaultops_s3_access_key(self) -> str:
-        """
-        Returns the access key for the S3 bucket.
-
-        Returns:
-            str: The access key for the S3 bucket.
-        """
-
-        return self.__bitwarden_client.secrets().get(self.vaultops_s3_access_key_bws_id).data.value
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vaultops_s3_secret_key(self) -> str:
-        """
-        Returns the secret key for the S3 bucket.
-
-        Returns:
-            str: The secret key for the S3 bucket.
-        """
-
-        return self.__bitwarden_client.secrets().get(self.vaultops_s3_secret_key_bws_id).data.value
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vaultops_s3_signature_version(self) -> str:
-        """
-        Returns the signature version for the S3 bucket.
-
-        Returns:
-            str: The signature version for the S3 bucket.
-        """
-
-        return self.__bitwarden_client.secrets().get(self.vaultops_s3_signature_version_bws_id).data.value
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vaultops_s3_region(self) -> str:
-        """
-        Returns the region of the S3 bucket.
-
-        Returns:
-            str: The region of the S3 bucket.
-        """
-
-        return self.__bitwarden_client.secrets().get(self.vaultops_s3_region_bws_id).data.value
+    vaultops_s3_bucket_name: str = Field(description="The name of the S3 bucket")
+    vaultops_s3_endpoint_url: str = Field(description="The endpoint URL of the S3 bucket")
+    vaultops_s3_access_key: str = Field(description="The access key for the S3 bucket")
+    vaultops_s3_secret_key: str = Field(description="The secret key for the S3 bucket")
+    vaultops_s3_signature_version: str = Field(description="The signature version for the S3 bucket")
+    vaultops_s3_region: str = Field(description="The region of the S3 bucket")
 
     def storage_ops(  # pylint: disable=too-many-arguments,too-many-locals
         self,
@@ -226,3 +137,24 @@ class StorageConfig(BaseModel):
         inventory.set_variable("all", "vaultops_s3_secret_key", self.vaultops_s3_secret_key)
         inventory.set_variable("all", "vaultops_s3_signature_version", self.vaultops_s3_signature_version)
         inventory.set_variable("all", "vaultops_s3_region", self.vaultops_s3_region)
+
+
+def get_storage_config(bws_id: str) -> StorageConfig:
+    """
+
+    Returns:
+
+    """
+    __bitwarden_client: BitwardenClient = BitwardenClient(
+        client_settings_from_dict(
+            {
+                "apiUrl": os.getenv("API_URL", "https://api.bitwarden.com"),
+                "deviceType": DeviceType.SDK,
+                "identityUrl": os.getenv("IDENTITY_URL", "https://identity.bitwarden.com"),
+                "userAgent": "Python",
+            }
+        )
+    )
+    __bitwarden_client.access_token_login(os.environ["BWS_ACCESS_TOKEN"])
+    secrets_value_json = __bitwarden_client.secrets().get(bws_id).data.value
+    return StorageConfig(**json.loads(secrets_value_json))

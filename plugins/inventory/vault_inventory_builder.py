@@ -58,51 +58,10 @@ DOCUMENTATION = r"""
             description: Path to the temporary directory for storing Vault configuration files.
             required: true
             type: srt
-        vaultops_storage:
-            description:
-                - The backend for storing the Vault configuration.
-                - Bitwarden secret manager is used to store the Vault configuration.
+        vaultops_storage_bws_id:
+            description: Bitwarden ID for the storage of Vault configuration files.
             required: true
-            type: dict
-            suboptions:
-                vaultops_s3_aes256_sse_customer_key_base64_bws_id:
-                    description:
-                        - S3 server-side encryption customer key. (32 bytes base64 encoded key)
-                        - "For example to create a new key: `tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 32 | base64`"
-                    required: true
-                    type: str
-                vaultops_s3_bucket_name_bws_id:
-                    description:
-                        - Name of the S3 bucket containing the Vault essential files.
-                        - vault binary key: vault_binary/vault_{{ vault_rv_version }}_{{ os }}_{{ arch }}.zip
-                        - vault config key: vault_config.yml
-                        - vault unseal keys key: vault_unseal_keys.yml
-                        - vault terraform state key: terraform.tfstate
-                        - vault raft snapshot key: raft_snapshot/<backup-id>.snap
-                    required: false
-                    type: str
-                vaultops_s3_endpoint_url_bws_id:
-                    description: URL of the S3 endpoint.
-                    required: false
-                    type: str
-                vaultops_s3_access_key_bws_id:
-                    description: S3 access key.
-                    required: false
-                    type: str
-                vaultops_s3_secret_key_bws_id:
-                    description: S3 secret key.
-                    required: false
-                    type: str
-                vaultops_s3_signature_version_bws_id:
-                    description: S3 signature version.
-                    required: false
-                    type: str
-                    default: s3v4
-                vaultops_s3_region_bws_id:
-                    description: S3 region.
-                    required: false
-                    type: str
-                    default: main
+            type: srt
 """
 
 

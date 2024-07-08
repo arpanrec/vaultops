@@ -21,14 +21,8 @@ Make sure the `plugin`  is set to `vault_inventory_builder`.
 ```yaml
 ---
 plugin: vault_inventory_builder
-vaultops_tmp_dir_path: # TODO: The temporary directory path, Type: str
-vaultops_storage:
-    vaultops_s3_aes256_sse_customer_key_base64: # TODO: The base64 encoded AES256 SSE customer key, `CMD: tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 32 | base64`, Type: str
-    vaultops_s3_bucket_name: # TODO: The name of the S3 bucket, Type: str
-    vaultops_s3_endpoint_url: # TODO: The endpoint URL of the S3 bucket, Type: str
-    vaultops_s3_access_key: # TODO: The access key of the S3 bucket, Type: str
-    vaultops_s3_secret_key: # TODO: The secret key of the S3 bucket, Type: str
-    vaultops_s3_region: # TODO: The region of the S3 bucket, Type: str
+vaultops_tmp_dir_path: # TODO: The temporary directory path., Type: str
+vaultops_storage_bws_id: # TODO: Bitwarden ID for the storage of Vault configuration files., Type: str
 ```
 
 * You can change this file in [ansible.cfg](ansible.cfg#L2) file.
