@@ -1,0 +1,11 @@
+---
+plugin: vault_inventory_builder
+vaultops_tmp_dir_path: /tmp/vaultops
+vaultops_storage:
+    vaultops_s3_aes256_sse_customer_key_base64_bws_id: 15acf969-a669-43de-82e4-b1a7013d4215
+    vaultops_s3_bucket_name_bws_id: b736348d-e0af-4646-aa48-b1a70150a5e6
+    vaultops_s3_endpoint_url_bws_id: 0453e261-e836-45d9-925a-b1a70150bdec
+    vaultops_s3_access_key_bws_id: 98d7a5d8-fd44-43b8-b96d-b1a70150d3aa
+    vaultops_s3_secret_key_bws_id: b94f719f-a6da-49bc-a56f-b1a70150ee9b
+    vaultops_s3_signature_version_bws_id: b058ce7d-e551-4b7b-ab51-b1a70152c763
+    vaultops_s3_region_bws_id: 7f19c85c-dab8-42cd-a614-b1a70151022d

@@ -12,7 +12,7 @@ from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .backend import BackendConfig
+from .storage import StorageConfig
 from .vault_secrets import VaultSecrets
 from .vault_server import VaultServer
 
@@ -23,13 +23,13 @@ class VaultConfig(BaseSettings, extra="allow"):
 
     Attributes:
         vaultops_tmp_dir_path (str): The root directory for storing temporary files.
-        vaultops_storage (BackendConfig): The backend for storing the Vault configuration.
+        vaultops_storage (StorageConfig): The backend for storing the Vault configuration.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
 
     vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
-    vaultops_storage: BackendConfig
+    vaultops_storage: StorageConfig
 
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"

@@ -291,4 +291,3 @@ dist
 .vscode/settings.json
 /vault_config/*
 /tmp/*
-inventory.yml

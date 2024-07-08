@@ -43,12 +43,13 @@ def terraform_apply(
     tf_state_file = os.path.join(vault_config.vaultops_tmp_dir_path, "terraform.tfstate")
     tf_state_file_bak = f"{tf_state_file}_bak_{epoch_time}"
     backend_tf_vars: Dict[str, Any] = {"path": tf_state_file}
-    if vault_config.tf_state() is not None:
+    current_tf_state = vault_config.tf_state()
+    if current_tf_state is not None:
         with open(tf_state_file, "w", encoding="utf-8") as f:
-            f.write(str(vault_config.tf_state()))
+            f.write(str(current_tf_state))
     else:
         if os.path.exists(tf_state_file):
-            shutil.rmtree(tf_state_file, ignore_errors=False)
+            os.remove(tf_state_file)
 
     tf = Terraform(working_dir="codifiedvault", is_env_vars_included=True)
     LOGGER.info("Writing backend vars in %s/backend.auto.tfvars.json", vault_config.vaultops_tmp_dir_path)
