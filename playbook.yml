@@ -52,6 +52,7 @@
                 - --API-SSECustomerAlgorithm=AES256
                 - --API-SSECustomerKey={{ vaultops_s3_aes256_sse_customer_key_base64 | b64decode }}
                 # - --API-SSECustomerKeyMD5={{ vaultops_s3_aes256_sse_customer_key_base64 | b64decode | md5 }}
+                # TODO: SSECustomerKeyMD5 Not working
                 - "s3://{{ vaultops_s3_bucket_name }}/bin/{{ vault_rv_version }}/vault_{{ vault_rv_version }}_linux_\
                   {{ item.value['vault_arch'] }}.zip"
                 - "{{ vaultops_tmp_dir_path }}/vault_{{ vault_rv_version }}_linux_{{ item.key }}.zip"
