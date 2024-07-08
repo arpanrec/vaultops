@@ -139,6 +139,7 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group(self.ansible_vault_node_servers_group_name)
         ansible_inventory_dict = self._read_config_data(path)
         vault_config: VaultConfig = build_vault_config(ansible_inventory_dict)
+        vault_config.vaultops_storage.add_to_ansible_inventory(self.inventory)
         vault_secrets: VaultSecrets = vault_config.vault_secrets
 
         vault_vm_server_ssh_user_known_hosts_file = os.path.join(
