@@ -7,8 +7,12 @@ from typing import Any, Dict, Optional
 import boto3
 import yaml
 from botocore.config import Config
+from botocore.response import StreamingBody
 from mypy_boto3_s3.client import S3Client
-from mypy_boto3_s3.type_defs import GetBucketLocationOutputTypeDef
+from mypy_boto3_s3.type_defs import (
+    GetBucketLocationOutputTypeDef,
+    GetObjectOutputTypeDef,
+)
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -46,6 +50,7 @@ class VaultConfig(BaseSettings):
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
     __vault_terraform_state_key = "terraform.tfstate"
+    __vault_raft_snapshot_key = "vault_raft_snapshot.snap"
     __vault_config_dict: Dict[str, Any] = {}
     __s3_client: S3Client
 
@@ -98,14 +103,15 @@ class VaultConfig(BaseSettings):
         Returns:
             str: The content of the file.
         """
-        response = self.__s3_client.get_object(
+        response: GetObjectOutputTypeDef = self.__s3_client.get_object(
             Bucket=self.vaultops_s3_bucket_name,
             Key=key,
             SSECustomerAlgorithm="AES256",
             SSECustomerKey=self.vaultops_s3_aes256_sse_customer_key,
             ChecksumMode="ENABLED",
         )
-        return response["Body"].read().decode("utf-8")
+        body: StreamingBody = response["Body"]
+        return body.read().decode("utf-8")
 
     def __write_s3(  # pylint: disable=too-many-arguments
         self, key: str, content: bytes, content_type: str, content_encoding: str = "utf-8", content_language: str = "en"
@@ -214,9 +220,9 @@ class VaultConfig(BaseSettings):
         Args:
             snapshot: The Raft snapshot to save.
         """
-        print("snapshot: ", snapshot, type(snapshot))
+        print("snapshot: ", type(snapshot))
         if isinstance(snapshot, bytes):
-            self.__write_s3(self.__vault_config_key, snapshot, "application/octet-stream")
+            self.__write_s3(self.__vault_raft_snapshot_key, snapshot, "application/octet-stream")
 
         raise ValueError("Snapshot must be a bytes object")
 
