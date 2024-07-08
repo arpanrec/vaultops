@@ -1,17 +1,18 @@
 import base64
 import ipaddress
 import os
-from typing import Any, Dict, Optional, Literal
+from typing import Any, Dict, Optional
 
 import boto3
 import yaml
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
-from mypy_boto3_s3.type_defs import GetBucketLocationOutputTypeDef, GetObjectOutputTypeDef
+from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from .backend import BackendConfig
 from .vault_secrets import VaultSecrets
 from .vault_server import VaultServer
 
@@ -22,26 +23,13 @@ class VaultConfig(BaseSettings, extra="allow"):
 
     Attributes:
         vaultops_tmp_dir_path (str): The root directory for storing temporary files.
-        vaultops_s3_aes256_sse_customer_key_base64 (str):
-            - The base64-encoded AES256 key for the S3 bucket.
-        vaultops_s3_bucket_name (str): The name of the S3 bucket.
-        vaultops_s3_endpoint_url (str): The endpoint URL of the S3 bucket.
-        vaultops_s3_access_key (str): The access key for the S3 bucket.
-        vaultops_s3_secret_key (str): The secret key for the S3 bucket.
-        vaultops_s3_signature_version (str): The signature version for the S3 bucket.
-        vaultops_s3_region (str): The region of the S3 bucket.
+        vaultops_storage (BackendConfig): The backend for storing the Vault configuration.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
 
-    vaultops_tmp_dir_path: str
-    vaultops_s3_aes256_sse_customer_key_base64: str
-    vaultops_s3_bucket_name: str
-    vaultops_s3_endpoint_url: str
-    vaultops_s3_access_key: str
-    vaultops_s3_secret_key: str
-    vaultops_s3_signature_version: str = Field(default="s3v4", description="The signature version for the S3 bucket")
-    vaultops_s3_region: str = Field(description="The region of the S3 bucket")
+    vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
+    vaultops_storage: BackendConfig
 
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
@@ -186,31 +174,31 @@ class VaultConfig(BaseSettings, extra="allow"):
         Returns:
             Optional[str]: The content of the file.
         """
-        vaultops_s3_aes256_sse_customer_key = base64.b64decode(self.vaultops_s3_aes256_sse_customer_key_base64).decode(
-            "utf-8"
-        )
+        vaultops_s3_aes256_sse_customer_key = base64.b64decode(
+            self.vaultops_storage.vaultops_s3_aes256_sse_customer_key_base64
+        ).decode("utf-8")
         __s3_client = boto3.client(
             service_name="s3",
-            endpoint_url=self.vaultops_s3_endpoint_url,
-            aws_access_key_id=self.vaultops_s3_access_key,
-            aws_secret_access_key=self.vaultops_s3_secret_key,
+            endpoint_url=self.vaultops_storage.vaultops_s3_endpoint_url,
+            aws_access_key_id=self.vaultops_storage.vaultops_s3_access_key,
+            aws_secret_access_key=self.vaultops_storage.vaultops_s3_secret_key,
             aws_session_token=None,
             config=Config(
-                signature_version=self.vaultops_s3_signature_version,
+                signature_version=self.vaultops_storage.vaultops_s3_signature_version,
                 retries={"max_attempts": 3, "mode": "standard"},
             ),
             verify=True,
         )
 
         get_bucket_versioning_response = __s3_client.get_bucket_versioning(
-            Bucket=self.vaultops_s3_bucket_name,
+            Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
         )
         if get_bucket_versioning_response.get("Status", "") != "Enabled":
             raise ValueError("Bucket Versioning is not enabled")
 
         if file_content:
             __s3_client.put_object(
-                Bucket=self.vaultops_s3_bucket_name,
+                Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
                 Key=file_path,
                 Body=file_content,
                 ContentType=content_type,
@@ -222,7 +210,7 @@ class VaultConfig(BaseSettings, extra="allow"):
             return ""
         try:
             response: GetObjectOutputTypeDef = __s3_client.get_object(
-                Bucket=self.vaultops_s3_bucket_name,
+                Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
                 Key=file_path,
                 SSECustomerAlgorithm="AES256",
                 SSECustomerKey=vaultops_s3_aes256_sse_customer_key,

@@ -52,7 +52,9 @@ def initialize_vault(all_raft_nodes: Dict[str, VaultRaftNodeHvac], vault_config:
     init_node_id = list(all_raft_nodes.keys())[0]
     init_node = all_raft_nodes[init_node_id]
     LOGGER.info("%s:: Vault is not initialized. Initializing...", init_node_id)
-    LOGGER.info("%s:: Saving vault init keys to %s", init_node_id, vault_config.vaultops_s3_bucket_name)
+    LOGGER.info(
+        "%s:: Saving vault init keys to %s", init_node_id, vault_config.vaultops_storage.vaultops_s3_bucket_name
+    )
 
     user_wants_to_continue = input("Do you want to continue? type 'yes' to continue: ")
     vault_client: hvac.Client = init_node.hvac_client
