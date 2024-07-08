@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 import boto3
 import yaml
 from botocore.config import Config
+from botocore import errorfactory
 from mypy_boto3_s3.client import S3Client
 from mypy_boto3_s3.type_defs import GetBucketLocationOutputTypeDef
 from pydantic import Field, computed_field
@@ -187,7 +188,14 @@ class VaultConfig(BaseSettings):
             self.__write_s3_string(self.__vault_unseal_keys_key, yaml.dump(unseal_keys), "text/yaml")
             return unseal_keys
 
-        return yaml.safe_load(self.__read_s3_str(self.__vault_unseal_keys_key))
+        try:
+            yaml.safe_load(self.__read_s3_str(self.__vault_unseal_keys_key))
+        except errorfactory.NoSuchKey:
+            return None
+        except Exception as e:
+            raise e
+
+        return
 
     def save_raft_snapshot(self, snapshot: Any) -> None:
         """

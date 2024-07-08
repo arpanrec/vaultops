@@ -80,7 +80,7 @@ def initialize_vault(all_raft_nodes: Dict[str, VaultRaftNodeHvac], vault_config:
     LOGGER.debug("%s:: Vault init response: %s", init_node_id, yaml.dump(data=init_response, default_flow_style=False))
 
     vault_config.unseal_keys(init_response)
-    LOGGER.info("%s:: Vault init secrets are saved in %s", init_node_id, vault_config.vault_unseal_keys_path)
+    LOGGER.info("%s:: Vault init secrets are saved in %s", init_node_id, vault_config.unseal_keys())
 
     if vault_client.sys.is_initialized():
         LOGGER.info("%s:: Vault initialization is complete.", init_node_id)

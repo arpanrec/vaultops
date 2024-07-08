@@ -78,7 +78,7 @@ def vault_setup(inventory_file_name: str) -> VaultHaClient:
 
     vault_sudo_token: str
 
-    if vault_config.get_vault_unseal_keys():
+    if vault_config.unseal_keys():
         LOGGER.info("Creating new root token")
         new_root_token: VaultNewRootToken = regenerate_root_token(
             ready_node_details=ready_node_details,
@@ -99,7 +99,7 @@ def vault_setup(inventory_file_name: str) -> VaultHaClient:
     LOGGER.info("Remove, Add and Validate raft nodes")
     raft_ops(all_raft_nodes=all_raft_nodes, ready_node_details=ready_node_details)
 
-    if vault_config.get_vault_unseal_keys():
+    if vault_config.unseal_keys():
         LOGGER.info("Setting up service admin access")
         add_admin_user_policy(ready_node_details=ready_node_details, vault_ha_client=vault_ha_client)
     else:
