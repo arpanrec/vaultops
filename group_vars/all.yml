@@ -13,6 +13,7 @@ pv_vault_info_map:
             1.16.1: 315a1964d7003ef6de94c407a88972d45eb9b378946a53a1bbff34de1ae2d1e0
             1.16.2: 688ce462b70cb674f84fddb731f75bb710db5ad9e4e5a17659e90e1283a8b4b7
             1.16.3: ca33d4adc55cc3ac37249198254f2a85fee5fb878b37bcf5e1f5535de82161d8
+            1.17.1: f2266dcecabff8809a54f7cf3688c1946408e8f863bcf379ef9146ab3a1c3f4a
     aarch64:
         vault_arch: arm64
         sha256sum:
@@ -21,7 +22,8 @@ pv_vault_info_map:
             1.16.1: 3fc4746c8dd74afdaa9201ab1b869c8764efae00e126879d36efc6c68af18daf
             1.16.2: d5bd42227d295b1dcc4a5889c37e6a8ca945ece4795819718eaf54db87aa6d4f
             1.16.3: d03a4b998d61c1434bc46e332b8b85bbad4d12bbfdbbb11ecff6561b0e2ff049
-vault_rv_version: 1.16.3
+            1.17.1: 6f6449cb8d353af99c8506f92b9b53111def3daba32c72f2483a8ae98faff2f2
+vault_rv_version: 1.17.1
 
 pv_vault_user: vault
 pv_vault_group: vault
