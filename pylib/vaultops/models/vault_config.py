@@ -30,11 +30,6 @@ class VaultConfig(BaseSettings, extra="allow"):
         vaultops_s3_secret_key (str): The secret key for the S3 bucket.
         vaultops_s3_signature_version (str): The signature version for the S3 bucket.
         vaultops_s3_region (str): The region of the S3 bucket.
-        vaultops_s3_skip_region_validation (bool): Whether to skip region validation.
-        vaultops_s3_s3_skip_metadata_api_check (bool): Whether to skip metadata API check.
-        vaultops_s3_skip_credentials_validation (bool): Whether to skip credentials validation.
-        vaultops_s3_skip_requesting_account_id (bool): Whether to skip requesting the account ID.
-        vaultops_s3_addressing_style (str): The addressing style for the S3 bucket.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
@@ -46,20 +41,7 @@ class VaultConfig(BaseSettings, extra="allow"):
     vaultops_s3_access_key: str
     vaultops_s3_secret_key: str
     vaultops_s3_signature_version: str = Field(default="s3v4", description="The signature version for the S3 bucket")
-    vaultops_s3_region: str = Field(description="The region of the S3 bucket", default="main")
-    vaultops_s3_skip_region_validation: bool = Field(default=False, description="Whether to skip region validation")
-    vaultops_s3_s3_skip_metadata_api_check: bool = Field(
-        default=False, description="Whether to skip metadata API check"
-    )
-    vaultops_s3_skip_credentials_validation: bool = Field(
-        default=False, description="Whether to skip credentials validation"
-    )
-    vaultops_s3_skip_requesting_account_id: bool = Field(
-        default=False, description="Whether to skip requesting the account ID"
-    )
-    vaultops_s3_addressing_style: Literal["virtual", "path"] = Field(
-        default="virtual", description="The addressing style for the S3 bucket"
-    )
+    vaultops_s3_region: str = Field(description="The region of the S3 bucket")
 
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
@@ -115,40 +97,22 @@ class VaultConfig(BaseSettings, extra="allow"):
         except Exception as e:
             raise e
 
-    def get_terraform_backend_config(self) -> Dict[str, Any]:
-        """
-        Returns the Terraform backend configuration.
-        """
-
-        return {
-            "bucket": self.vaultops_s3_bucket_name,
-            "key": self.__vault_terraform_state_key,
-            "endpoints": {"s3": self.vaultops_s3_endpoint_url},
-            "access_key": self.vaultops_s3_access_key,
-            "secret_key": self.vaultops_s3_secret_key,
-            "region": self.vaultops_s3_region,
-            "skip_credentials_validation": self.vaultops_s3_skip_credentials_validation,
-            "skip_metadata_api_check": self.vaultops_s3_s3_skip_metadata_api_check,
-            "skip_region_validation": self.vaultops_s3_skip_region_validation,
-            "skip_requesting_account_id": self.vaultops_s3_skip_requesting_account_id,
-            "use_path_style": self.vaultops_s3_addressing_style == "path",
-            "acl": "private",
-            "encrypt": True,
-            "sse_customer_key": self.vaultops_s3_aes256_sse_customer_key_base64,
-            "skip_s3_checksum": True,  # TODO: Need to check, why not working in linode object storage
-        }
-
-    def is_terraform_state_file_present(self) -> bool:
+    def tf_state(self, state: Optional[str] = None) -> Optional[str]:
         """
         Returns True if the Terraform state file is present; otherwise, returns False.
         """
+        if state:
+            self.storage_ops(
+                file_path=self.__vault_terraform_state_key,
+                file_content=state.encode("utf-8"),
+                content_type="application/json",
+            )
+            return state
         con_str: Optional[str] = self.storage_ops(
             file_path=self.__vault_terraform_state_key,
             error_on_missing_file=False,
         )
-        if not con_str:
-            return False
-        return True
+        return con_str
 
     def unseal_keys(self, unseal_keys: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, str]]:
         """
@@ -232,19 +196,11 @@ class VaultConfig(BaseSettings, extra="allow"):
             aws_secret_access_key=self.vaultops_s3_secret_key,
             aws_session_token=None,
             config=Config(
-                signature_version=self.vaultops_s3_signature_version, retries={"max_attempts": 3, "mode": "standard"}
+                signature_version=self.vaultops_s3_signature_version,
+                retries={"max_attempts": 3, "mode": "standard"},
             ),
             verify=True,
         )
-
-        if not self.vaultops_s3_skip_region_validation:
-            bucket_location: GetBucketLocationOutputTypeDef = __s3_client.get_bucket_location(
-                Bucket=self.vaultops_s3_bucket_name
-            )
-            if bucket_location.get("LocationConstraint", "") != self.vaultops_s3_region:
-                raise ValueError(
-                    f"Bucket Location: {bucket_location} does not match the region: {self.vaultops_s3_region}"
-                )
 
         get_bucket_versioning_response = __s3_client.get_bucket_versioning(
             Bucket=self.vaultops_s3_bucket_name,
@@ -274,11 +230,9 @@ class VaultConfig(BaseSettings, extra="allow"):
             )
             body: StreamingBody = response["Body"]
             return body.read().decode("utf-8")
-        except Exception as e:
-            if (
-                (not error_on_missing_file)
-                and isinstance(e, ClientError)
-                and e.response["Error"]["Code"] == "NoSuchKey"
-            ):
+        except ClientError as e:
+            if (not error_on_missing_file) and e.response["Error"]["Code"] == "NoSuchKey":
                 return None
+            raise ValueError("S3 Client Error") from e
+        except Exception as e:
             raise ValueError("Error reading file from S3") from e

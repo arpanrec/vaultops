@@ -46,7 +46,7 @@ def initialize_vault(all_raft_nodes: Dict[str, VaultRaftNodeHvac], vault_config:
     if vault_config.unseal_keys():
         raise VaultOpsRetryError("Vault is not initialized but unseal keys are provided.")
 
-    if vault_config.is_terraform_state_file_present():
+    if vault_config.tf_state():
         raise VaultOpsRetryError("Terraform state file already exists")
 
     init_node_id = list(all_raft_nodes.keys())[0]
