@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/arpanrec/vaultops/compare/1.2.1...2.0.0) (2024-07-08)
+
+
+### Features
+
+* Feature/s3 ([#6](https://github.com/arpanrec/vaultops/issues/6)) ([63ffd6f](https://github.com/arpanrec/vaultops/commit/63ffd6ffeca259fbc2bec6e437a45926c8746c9f))
+
+
+### BREAKING CHANGES
+
+* Store details in s3
+
 ## [1.2.1](https://github.com/arpanrec/vaultops/compare/1.2.0...1.2.1) (2024-06-21)
 
 
