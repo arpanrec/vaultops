@@ -223,8 +223,8 @@ class VaultConfig(BaseSettings):
         print("snapshot: ", type(snapshot))
         if isinstance(snapshot, bytes):
             self.__write_s3(self.__vault_raft_snapshot_key, snapshot, "application/octet-stream")
-
-        raise ValueError("Snapshot must be a bytes object")
+        else:
+            raise ValueError("Snapshot must be a bytes object")
 
     @computed_field(return_type=VaultSecrets)  # type: ignore
     @property
