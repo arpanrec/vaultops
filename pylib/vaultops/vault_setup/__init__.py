@@ -35,7 +35,7 @@ def vault_setup(inventory_file_name: str) -> VaultHaClient:
         inventory_file_name: str - inventory file name
     """
 
-    vault_config: VaultConfig = build_vault_config(inventory_file_name, vaultops_update_run_id=True)
+    vault_config: VaultConfig = build_vault_config(inventory_file_name)
 
     LOGGER.info("Loading root ca key")
     rsa_root_ca_key: PrivateKeyTypes = serialization.load_pem_private_key(
@@ -78,7 +78,7 @@ def vault_setup(inventory_file_name: str) -> VaultHaClient:
 
     vault_sudo_token: str
 
-    if vault_config.get_vault_unseal_keys():
+    if vault_config.unseal_keys():
         LOGGER.info("Creating new root token")
         new_root_token: VaultNewRootToken = regenerate_root_token(
             ready_node_details=ready_node_details,
@@ -99,7 +99,7 @@ def vault_setup(inventory_file_name: str) -> VaultHaClient:
     LOGGER.info("Remove, Add and Validate raft nodes")
     raft_ops(all_raft_nodes=all_raft_nodes, ready_node_details=ready_node_details)
 
-    if vault_config.get_vault_unseal_keys():
+    if vault_config.unseal_keys():
         LOGGER.info("Setting up service admin access")
         add_admin_user_policy(ready_node_details=ready_node_details, vault_ha_client=vault_ha_client)
     else:
@@ -112,7 +112,7 @@ def vault_setup(inventory_file_name: str) -> VaultHaClient:
     terraform_apply(vault_config=vault_config, vault_ha_client=vault_ha_client)
 
     LOGGER.info("Revoking all tokens and secret ID accessors")
-    if vault_config.get_vault_unseal_keys():
+    if vault_config.unseal_keys():
         vault_token_revoke(vault_client=ready_node_details)
     else:
         vault_token_revoke(vault_client=vault_ha_client)

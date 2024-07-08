@@ -65,7 +65,7 @@ def regenerate_root_token(  # pylint: disable=too-many-arguments, too-many-local
         VaultNewRootToken: A dictionary containing information about the generated root token.
     """
 
-    vault_cluster_keys: Optional[Dict[str, Any]] = vault_config.get_vault_unseal_keys()
+    vault_cluster_keys: Optional[Dict[str, Any]] = vault_config.unseal_keys()
     if vault_cluster_keys is None:
         raise VaultOpsRetryError("Vault cluster unseal keys not found in secrets.")
     keys_base64: List[str] = vault_cluster_keys["keys_base64"]

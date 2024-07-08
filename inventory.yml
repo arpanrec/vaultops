@@ -1,4 +1,0 @@
----
-plugin: vault_inventory_builder
-vaultops_tmp_dir_path: ./vault_config/tmp
-vaultops_config_dir_path: ./vault_config
