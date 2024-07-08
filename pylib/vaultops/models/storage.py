@@ -5,12 +5,16 @@ from typing import Optional
 
 import boto3
 from ansible.inventory.data import InventoryData  # type: ignore
+from bitwarden_sdk import (  # type: ignore
+    BitwardenClient,
+    DeviceType,
+    client_settings_from_dict,
+)
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
-from pydantic import Field, BaseModel
-from bitwarden_sdk import BitwardenClient, DeviceType, client_settings_from_dict  # type: ignore
+from pydantic import BaseModel, Field
 
 
 class StorageConfig(BaseModel):

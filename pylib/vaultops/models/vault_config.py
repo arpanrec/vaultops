@@ -30,13 +30,14 @@ class VaultConfig(BaseSettings, extra="allow"):
     __vault_terraform_state_key = "terraform.tfstate"
     __vault_raft_snapshot_key = "vault_raft_snapshot.snap"
     __vault_config_dict: Dict[str, Any] = {}
+    __vaultops_storage: StorageConfig
 
     def __init__(self, **data: Any):
         super().__init__(**data)
 
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
-
+        self.__vaultops_storage = get_storage_config(self.vaultops_storage_bws_id)
         pre_requisites = yaml.safe_load(str(self.vaultops_storage.storage_ops(file_path=self.__vault_config_key)))
         self.__vault_config_dict.update(pre_requisites)
 
@@ -153,4 +154,6 @@ class VaultConfig(BaseSettings, extra="allow"):
         """
         Wrapper function for storage operations.
         """
-        return get_storage_config(self.vaultops_storage_bws_id)
+        if not self.__vaultops_storage:
+            self.__vaultops_storage = get_storage_config(self.vaultops_storage_bws_id)
+        return self.__vaultops_storage
