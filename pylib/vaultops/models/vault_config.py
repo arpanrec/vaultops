@@ -1,104 +1,50 @@
+import base64
 import ipaddress
 import os
 from typing import Any, Dict, Optional
 
+import boto3
 import yaml
-from pydantic import computed_field
+from botocore.config import Config
+from botocore.exceptions import ClientError
+from botocore.response import StreamingBody
+from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
+from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .exit_hook import ExitHooks
+from .backend import BackendConfig
 from .vault_secrets import VaultSecrets
 from .vault_server import VaultServer
 
 
-class VaultConfig(BaseSettings):
+class VaultConfig(BaseSettings, extra="allow"):
     """
     Represents the secrets required for interacting with HashiCorp Vault.
 
     Attributes:
         vaultops_tmp_dir_path (str): The root directory for storing temporary files.
-        vaultops_config_dir_path (str): The root directory for storing configuration files.
+        vaultops_storage (BackendConfig): The backend for storing the Vault configuration.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
 
-    vaultops_tmp_dir_path: str
-    vaultops_config_dir_path: str
-    vaultops_update_run_id: bool = False
+    vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
+    vaultops_storage: BackendConfig
 
-    __vault_config_file_name = "vault_config.yml"
+    __vault_config_key = "vault_config.yml"
+    __vault_unseal_keys_key = "vault_unseal_keys.yml"
+    __vault_terraform_state_key = "terraform.tfstate"
+    __vault_raft_snapshot_key = "vault_raft_snapshot.snap"
     __vault_config_dict: Dict[str, Any] = {}
-    _run_id_start_file_name = "run_id_start.txt"
-    _run_id_end_file_name = "run_id_end.txt"
-    _vault_unseal_keys_file_name = "vault_unseal_keys.yml"
-    _hooks = ExitHooks()
 
     def __init__(self, **data: Any):
         super().__init__(**data)
 
-        if not os.path.isabs(self.vaultops_config_dir_path):
-            raise ValueError("vaultops_config_dir_path must be an absolute path")
-
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
 
-        self._hooks.hook()
-        _run_id_start_file = os.path.join(self.vaultops_config_dir_path, self._run_id_start_file_name)
-        _run_id_end_file = os.path.join(self.vaultops_config_dir_path, self._run_id_end_file_name)
-        _run_id_start: int = 0
-        _run_id_end: int = 0
-
-        if os.path.exists(_run_id_start_file):
-            with open(_run_id_start_file, "r", encoding="utf-8") as f:
-                _run_id_start = int(f.read())
-
-        if os.path.exists(_run_id_end_file):
-            with open(_run_id_end_file, "r", encoding="utf-8") as f:
-                _run_id_end = int(f.read())
-
-        if _run_id_start != _run_id_end:
-            raise ValueError("Run ID start and end do not match")
-
-        self._tf_state_file = os.path.join(
-            self.vaultops_config_dir_path, "tfstate", f"terraform-{_run_id_start}.tfstate"
-        )
-
-        if self.vaultops_update_run_id:
-            self._run_id = _run_id_start + 1
-        else:
-            self._run_id = _run_id_start
-
-        self._next_tf_state_file = os.path.join(
-            self.vaultops_config_dir_path, "tfstate", f"terraform-{self._run_id}.tfstate"
-        )
-
-        self._raft_snapshot_file = os.path.join(
-            self.vaultops_config_dir_path, "vault-raft-snapshot", f"vault-raft-snapshot-{self._run_id}.snap"
-        )
-
-        if self._run_id > 2 and self.get_codifiedvault_tf_state() is None:
-            raise ValueError("Terraform state file not found but run ID is greater than 2")
-
-        if self._run_id > 2 and self.get_vault_unseal_keys() is None:
-            raise ValueError("Vault unseal keys file not found, but run ID is greater than 2")
-
-        __vault_config_file = os.path.join(self.vaultops_config_dir_path, self.__vault_config_file_name)
-        with open(__vault_config_file, "r", encoding="utf-8") as f:
-            pre_requisites = yaml.safe_load(f)
-            self.__vault_config_dict.update(pre_requisites)
-
-        if self.vaultops_update_run_id:
-            with open(_run_id_start_file, "w", encoding="utf-8") as f:
-                f.write(str(self._run_id))
-
-    def close(self) -> None:
-        """
-        Close the VaultConfig object.
-        """
-        if self._hooks.exit_code == 0 and self._hooks.exception is None and self.vaultops_update_run_id:
-            _run_id_end_file = os.path.join(self.vaultops_config_dir_path, self._run_id_end_file_name)
-            with open(_run_id_end_file, "w", encoding="utf-8") as f:
-                f.write(str(self._run_id))
+        pre_requisites = yaml.safe_load(str(self.storage_ops(file_path=self.__vault_config_key)))
+        self.__vault_config_dict.update(pre_requisites)
 
     @computed_field(return_type=Dict[str, VaultServer])  # type: ignore
     @property
@@ -139,29 +85,24 @@ class VaultConfig(BaseSettings):
         except Exception as e:
             raise e
 
-    def get_codifiedvault_tf_state(self) -> Optional[str]:
+    def tf_state(self, state: Optional[str] = None) -> Optional[str]:
         """
-        Returns the Terraform state.
+        Returns True if the Terraform state file is present; otherwise, returns False.
         """
+        if state:
+            self.storage_ops(
+                file_path=self.__vault_terraform_state_key,
+                file_content=state.encode("utf-8"),
+                content_type="application/json",
+            )
+            return state
+        con_str: Optional[str] = self.storage_ops(
+            file_path=self.__vault_terraform_state_key,
+            error_on_missing_file=False,
+        )
+        return con_str
 
-        if not os.path.exists(self._tf_state_file):
-            return None
-        with open(self._tf_state_file, "r", encoding="utf-8") as tf_state_file:
-            return tf_state_file.read()
-
-    def set_codifiedvault_tf_state(self, tf_state: str) -> None:
-        """
-        Sets the Terraform state.
-
-        Args:
-            tf_state (str): The Terraform state.
-        """
-
-        os.makedirs(os.path.dirname(self._next_tf_state_file), exist_ok=True)
-        with open(self._next_tf_state_file, "w", encoding="utf-8") as tf_state_file:
-            tf_state_file.write(tf_state)
-
-    def get_vault_unseal_keys(self) -> Optional[Dict[str, str]]:
+    def unseal_keys(self, unseal_keys: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, str]]:
         """
         Returns the Vault unseal keys.
 
@@ -169,46 +110,36 @@ class VaultConfig(BaseSettings):
             Dict[str, str]: The Vault unseal keys.
         """
 
-        if not os.path.exists(self.vault_unseal_keys_path):
+        if unseal_keys:
+            self.storage_ops(
+                file_path=self.__vault_unseal_keys_key,
+                file_content=yaml.dump(unseal_keys).encode("utf-8"),
+                content_type="text/yaml",
+            )
+            return unseal_keys
+        con_str: Optional[str] = self.storage_ops(
+            file_path=self.__vault_unseal_keys_key,
+            error_on_missing_file=False,
+        )
+        if not con_str:
             return None
+        return yaml.safe_load(str(con_str))
 
-        with open(self.vault_unseal_keys_path, "r", encoding="utf-8") as unseal_keys_file:
-            return yaml.safe_load(unseal_keys_file)
-
-    def set_vault_unseal_keys(self, unseal_keys: Dict[str, Any]) -> None:
-        """
-        Sets the Vault unseal keys.
-
-        Args:
-            unseal_keys (Dict[str, str]): The Vault unseal keys.
-        """
-
-        os.makedirs(os.path.dirname(self.vault_unseal_keys_path), exist_ok=True)
-
-        with open(self.vault_unseal_keys_path, "w", encoding="utf-8") as unseal_keys_file:
-            yaml.dump(unseal_keys, unseal_keys_file)
-
-    @computed_field(return_type=str)  # type: ignore
-    @property
-    def vault_unseal_keys_path(self):
-        """
-        Returns the path to the file containing the unseal keys.
-
-        Returns:
-            str: The path to the file containing the unseal keys.
-        """
-        return os.path.join(self.vaultops_config_dir_path, self._vault_unseal_keys_file_name)
-
-    def save_raft_snapshot(self, snapshot: Any) -> None:
+    def save_raft_snapshot(self, snapshot: bytes) -> None:
         """
         Saves the Raft snapshot to the specified file path.
 
         Args:
             snapshot: The Raft snapshot to save.
         """
-        os.makedirs(os.path.dirname(self._raft_snapshot_file), exist_ok=True)
-        with open(self._raft_snapshot_file, "wb") as f:
-            f.write(snapshot)
+        if isinstance(snapshot, bytes):
+            self.storage_ops(
+                file_path=self.__vault_raft_snapshot_key,
+                file_content=snapshot,
+                content_type="application/octet-stream",
+            )
+        else:
+            raise ValueError("Snapshot must be a bytes object")
 
     @computed_field(return_type=VaultSecrets)  # type: ignore
     @property
@@ -220,5 +151,76 @@ class VaultConfig(BaseSettings):
             VaultSecrets: The secrets stored in the file.
         """
 
-        vault_secrets = self.__vault_config_dict["vault_secrets"]
-        return VaultSecrets.model_validate(vault_secrets)
+        return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])
+
+    def storage_ops(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        file_path: str,
+        file_content: Optional[bytes] = None,
+        content_type="text/plain",
+        content_encoding="utf-8",
+        content_language="en",
+        error_on_missing_file: bool = True,
+    ) -> Optional[str]:
+        """
+        Perform storage operations.
+        Args:
+            file_path: Path of the file.
+            file_content: Content of the file.
+            content_type: Type of the content.
+            content_encoding: Encoding of the content.
+            content_language: Language of the content.
+            error_on_missing_file: Whether to raise an error if the file is missing.
+        Returns:
+            Optional[str]: The content of the file.
+        """
+        vaultops_s3_aes256_sse_customer_key = base64.b64decode(
+            self.vaultops_storage.vaultops_s3_aes256_sse_customer_key_base64
+        ).decode("utf-8")
+        __s3_client = boto3.client(
+            service_name="s3",
+            endpoint_url=self.vaultops_storage.vaultops_s3_endpoint_url,
+            aws_access_key_id=self.vaultops_storage.vaultops_s3_access_key,
+            aws_secret_access_key=self.vaultops_storage.vaultops_s3_secret_key,
+            aws_session_token=None,
+            config=Config(
+                signature_version=self.vaultops_storage.vaultops_s3_signature_version,
+                retries={"max_attempts": 3, "mode": "standard"},
+            ),
+            verify=True,
+        )
+
+        get_bucket_versioning_response = __s3_client.get_bucket_versioning(
+            Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
+        )
+        if get_bucket_versioning_response.get("Status", "") != "Enabled":
+            raise ValueError("Bucket Versioning is not enabled")
+
+        if file_content:
+            __s3_client.put_object(
+                Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
+                Key=file_path,
+                Body=file_content,
+                ContentType=content_type,
+                ContentEncoding=content_encoding,
+                ContentLanguage=content_language,
+                SSECustomerAlgorithm="AES256",
+                SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
+            )
+            return ""
+        try:
+            response: GetObjectOutputTypeDef = __s3_client.get_object(
+                Bucket=self.vaultops_storage.vaultops_s3_bucket_name,
+                Key=file_path,
+                SSECustomerAlgorithm="AES256",
+                SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
+                ChecksumMode="ENABLED",
+            )
+            body: StreamingBody = response["Body"]
+            return body.read().decode("utf-8")
+        except ClientError as e:
+            if (not error_on_missing_file) and e.response["Error"]["Code"] == "NoSuchKey":
+                return None
+            raise ValueError("S3 Client Error") from e
+        except Exception as e:
+            raise ValueError("Error reading file from S3") from e

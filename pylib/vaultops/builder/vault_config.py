@@ -1,4 +1,3 @@
-import atexit
 import logging
 import os
 from typing import Any, Dict, Union
@@ -10,15 +9,7 @@ from ..models.vault_config import VaultConfig
 LOGGER = logging.getLogger(__name__)
 
 
-def close_vault_config(vault_config: VaultConfig) -> None:
-    """
-    Close the VaultConfig object.
-    """
-
-    vault_config.close()
-
-
-def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]], vaultops_update_run_id: bool) -> VaultConfig:
+def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]]) -> VaultConfig:
     """
     Build the VaultConfig object from the given configuration.
     """
@@ -34,17 +25,8 @@ def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]], vaultops_u
 
     vaultops_tmp_dir_path = os.path.abspath(ansible_inventory_dict["vaultops_tmp_dir_path"])
     os.makedirs(vaultops_tmp_dir_path, exist_ok=True)
+    ansible_inventory_dict["vaultops_tmp_dir_path"] = vaultops_tmp_dir_path
 
-    vaultops_config_dir_path = os.path.abspath(ansible_inventory_dict["vaultops_config_dir_path"])
-
-    if vaultops_tmp_dir_path == vaultops_config_dir_path:
-        raise ValueError("vaultops_tmp_dir_path and vaultops_config_dir_path must be different")
-
-    vault_config = VaultConfig(
-        vaultops_tmp_dir_path=vaultops_tmp_dir_path,
-        vaultops_config_dir_path=vaultops_config_dir_path,
-        vaultops_update_run_id=vaultops_update_run_id,
-    )
-    atexit.register(close_vault_config, vault_config)
+    vault_config = VaultConfig.model_validate(ansible_inventory_dict, strict=False)
 
     return vault_config

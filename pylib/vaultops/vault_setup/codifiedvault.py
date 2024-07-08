@@ -43,9 +43,9 @@ def terraform_apply(
     tf_state_file = os.path.join(vault_config.vaultops_tmp_dir_path, "terraform.tfstate")
     tf_state_file_bak = f"{tf_state_file}_bak_{epoch_time}"
     backend_tf_vars: Dict[str, Any] = {"path": tf_state_file}
-    if vault_config.get_codifiedvault_tf_state() is not None:
+    if vault_config.tf_state() is not None:
         with open(tf_state_file, "w", encoding="utf-8") as f:
-            f.write(str(vault_config.get_codifiedvault_tf_state()))
+            f.write(str(vault_config.tf_state()))
     else:
         if os.path.exists(tf_state_file):
             shutil.rmtree(tf_state_file, ignore_errors=False)
@@ -101,7 +101,7 @@ def terraform_apply(
 
     with open(tf_state_file, "r", encoding="utf-8") as f:
         LOGGER.debug("Saving codifiedvault_tf_state")
-        vault_config.set_codifiedvault_tf_state(f.read())
+        vault_config.tf_state(f.read())
 
     LOGGER.debug("Moving %s to %s", tf_state_file, tf_state_file_bak)
     shutil.move(tf_state_file, tf_state_file_bak)
