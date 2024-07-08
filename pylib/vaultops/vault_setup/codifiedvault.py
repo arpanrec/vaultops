@@ -26,7 +26,7 @@ from ..models.vault_config import VaultConfig
 LOGGER = logging.getLogger(__name__)
 
 
-def terraform_apply(
+def terraform_apply(  # pylint: disable=too-many-locals
     vault_config: VaultConfig,
     vault_ha_client: VaultHaClient,
 ):
