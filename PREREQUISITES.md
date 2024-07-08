@@ -9,6 +9,24 @@ Look for the word `TODO` in the file, and change the value to your value.
 * [Python 3.10](https://www.python.org/downloads/release/python-3100/) or higher installed
   * [Poetry - PYTHON PACKAGING AND DEPENDENCY MANAGEMENT MADE EASY](https://python-poetry.org/)
 * [Terraform](https://www.terraform.io/downloads.html) installed
+* Bitwarden BWS secret manger
+  * [Secrets Manager](https://bitwarden.com/help/secrets-manager-cli/)
+  * In order to store the storage access keys, you need to have a secret manager.
+  * Set the BWS_ACCESS_TOKEN environment variable to the Bitwarden access token.
+    * Storage System Configuration
+      * In order to store the vault configuration files, you need to have a storage system.
+
+      ```json
+        {
+            "vaultops_s3_aes256_sse_customer_key_base64": "base64-encoded-key",
+            "vaultops_s3_bucket_name": "bucket-name",
+            "vaultops_s3_endpoint_url": "endpoint-url",
+            "vaultops_s3_access_key": "access-key",
+            "vaultops_s3_secret_key": "secret-key",
+            "vaultops_s3_signature_version": "signature-version",
+            "vaultops_s3_region": "region"
+        }
+      ```
 
 ## [Inventory File](inventory.yml)
 
@@ -22,7 +40,7 @@ Make sure the `plugin`  is set to `vault_inventory_builder`.
 ---
 plugin: vault_inventory_builder
 vaultops_tmp_dir_path: # TODO: The temporary directory path., Type: str
-vaultops_storage_bws_id: # TODO: Bitwarden ID for the storage of Vault configuration files., Type: str
+vaultops_storage_bws_id: # TODO: Bitwarden ID for the storage of Vault configuration files. Set `BWS_ACCESS_TOKEN` environment variable., Type: str
 ```
 
 * You can change this file in [ansible.cfg](ansible.cfg#L2) file.

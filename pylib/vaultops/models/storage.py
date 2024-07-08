@@ -5,11 +5,7 @@ from typing import Optional
 
 import boto3
 from ansible.inventory.data import InventoryData  # type: ignore
-from bitwarden_sdk import (  # type: ignore
-    BitwardenClient,
-    DeviceType,
-    client_settings_from_dict,
-)
+from bitwarden_sdk import BitwardenClient, DeviceType, client_settings_from_dict  # type: ignore
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
@@ -52,6 +48,17 @@ class StorageConfig(BaseModel):
     vaultops_s3_secret_key: str = Field(description="The secret key for the S3 bucket")
     vaultops_s3_signature_version: str = Field(description="The signature version for the S3 bucket")
     vaultops_s3_region: str = Field(description="The region of the S3 bucket")
+
+    __storage_type = "S3"
+
+    def storage_type(self) -> str:
+        """
+        Returns the location of the storage.
+
+        Returns:
+            str: The location of the storage.
+        """
+        return self.__storage_type
 
     def storage_ops(  # pylint: disable=too-many-arguments,too-many-locals
         self,
