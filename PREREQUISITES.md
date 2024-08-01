@@ -137,5 +137,5 @@ vault_secrets:
 ## Export Requirements
 
 ```bash
-poetry export --without-hashes --format=requirements.txt --with dev > .github/files/requirements-dev.txt
+poetry export --without-hashes --format=requirements.txt --with dev > .github/files/requirements.txt
 ```
