@@ -1,3 +1,10 @@
+## [3.1.5](https://github.com/arpanrec/vaultops/compare/3.1.4...3.1.5) (2024-08-02)
+
+
+### Bug Fixes
+
+* requirements-release.txt ([ba19b98](https://github.com/arpanrec/vaultops/commit/ba19b98f9740a346668e24830a3e24a0e65baf8b))
+
 ## [3.1.4](https://github.com/arpanrec/vaultops/compare/3.1.3...3.1.4) (2024-08-02)
 
 
