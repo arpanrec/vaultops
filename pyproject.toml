@@ -17,33 +17,34 @@ scripts = { "vaultops" = "vaultops.__main__:main" }
 
 [tool.poetry.dependencies]
 python = "^3.10"
-ansible = "10.1.0"
+ansible = "10.2.0"
 jmespath = "1.0.1"
 pydantic = "2.8.2"
-pydantic-settings = "2.3.4"
+pydantic-settings = "2.4.0"
 hvac = "2.3.0"
-prettytable = "3.10.0"
-bcrypt = "4.1.3"
+prettytable = "3.10.2"
+bcrypt = "4.2.0"
 python-terraform = "0.10.1"
 pygithub = "2.3.0"
 python-gnupg = "0.5.2"
-boto3 = "1.34.141"
+boto3 = "1.34.152"
+botocore = "1.34.152"
 bitwarden-sdk = "0.1.0"
-boto3-stubs = {extras = ["s3"], version = "1.34.141"}
+boto3-stubs = { extras = ["s3"], version = "1.34.152" }
 # boto3-stubs = { extras = ["all"], version = "1.34.140" } 
 s4cmd = "2.1.0"
-
-[tool.poetry.group.dev.dependencies]
-mypy = "1.10.1"
-pylint = "3.2.5"
-ansible-lint = { version = "24.6.1", markers = 'platform_system != "Windows"' }
+lxml = "5.2.2"
+pykeepass = "4.1.0.post1"
+mypy = "1.11.1"
+pylint = "3.2.6"
+ansible-lint = { version = "24.7.0", markers = 'platform_system != "Windows"' }
 poetry-plugin-export = "1.8.0"
 detect-secrets = "1.5.0"
-types-pyyaml = "6.0.12.20240311"
-types-requests = "2.32.0.20240622"
+types-pyyaml = "6.0.12.20240724"
+types-requests = "2.32.0.20240712"
 types-jmespath = "1.0.2.20240106"
-ansible-dev-tools = "24.6.1"
-pyright = "1.1.370"
+ansible-dev-tools = "24.7.2"
+pyright = "1.1.374"
 isort = "5.13.2"
 
 [build-system]
