@@ -1,3 +1,11 @@
+## [3.1.3](https://github.com/arpanrec/vaultops/compare/3.1.2...3.1.3) (2024-08-02)
+
+
+### Bug Fixes
+
+* git push with gpg ([a80a81c](https://github.com/arpanrec/vaultops/commit/a80a81c3cac82ef6ec987b77bd28e4add25df377))
+* no git_push_gpgsign ([8bf5930](https://github.com/arpanrec/vaultops/commit/8bf5930a8196e04c14e07c2ee04f674d3cc6a150))
+
 ## [3.1.2](https://github.com/arpanrec/vaultops/compare/3.1.1...3.1.2) (2024-08-02)
 
 
