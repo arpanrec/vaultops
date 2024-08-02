@@ -38,7 +38,7 @@ jobs:
 
     black:
         runs-on: ubuntu-latest
-        name: Black
+        name: black
         steps:
             - name: Checkout
               uses: actions/checkout@v4
