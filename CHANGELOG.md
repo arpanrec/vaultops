@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/arpanrec/vaultops/compare/3.1.0...3.1.1) (2024-08-02)
+
+
+### Bug Fixes
+
+* github release ([31fbd9d](https://github.com/arpanrec/vaultops/commit/31fbd9d9acf98b0a4b49884f2b10d5d5aa5ac032))
+
 # [3.1.0](https://github.com/arpanrec/vaultops/compare/3.0.0...3.1.0) (2024-07-08)
 
 
