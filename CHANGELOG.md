@@ -1,3 +1,10 @@
+## [3.1.4](https://github.com/arpanrec/vaultops/compare/3.1.3...3.1.4) (2024-08-02)
+
+
+### Bug Fixes
+
+* only need poetry ([688ca81](https://github.com/arpanrec/vaultops/commit/688ca81e0595dfe206c6605774f27b8af81bfa44))
+
 ## [3.1.3](https://github.com/arpanrec/vaultops/compare/3.1.2...3.1.3) (2024-08-02)
 
 
