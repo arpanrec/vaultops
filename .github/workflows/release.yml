@@ -18,32 +18,12 @@ jobs:
                   fetch-depth: 0
                   persist-credentials: false
 
-            - name: Import Secrets
-              id: import-secrets
-              uses: hashicorp/vault-action@v3
-              with:
-                  url: ${{ secrets.VAULT_ADDR }}
-                  caCertificate: ${{ secrets.ROOT_CA_CERTIFICATE_CONTENT_BASE64 }}
-                  clientKey: ${{ secrets.VAULT_CLIENT_PRIVATE_KEY_CONTENT_BASE64 }}
-                  clientCertificate: ${{ secrets.VAULT_CLIENT_CERTIFICATE_CONTENT_BASE64 }}
-                  method: approle
-                  roleId: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-                  secretId: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-                  exportEnv: false
-                  exportToken: false
-                  secrets: >-
-                      vault-secrets/data/vault_secrets/github_details/github_bot GH_BOT_GPG_PASSPHRASE ;
-
-                      vault-secrets/data/vault_secrets/github_details/github_bot GH_BOT_GPG_PRIVATE_KEY ;
-
-                      vault-secrets/data/vault_secrets/github_details/github_bot GH_BOT_API_TOKEN ;
-
             - name: Import GPG key
               id: import-gpg
               uses: crazy-max/ghaction-import-gpg@v6
               with:
-                  gpg_private_key: ${{ steps.import-secrets.outputs.GH_BOT_GPG_PRIVATE_KEY }}
-                  passphrase: ${{ steps.import-secrets.outputs.GH_BOT_GPG_PASSPHRASE }}
+                  gpg_private_key: ${{ secrets.GH_BOT_GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.GH_BOT_GPG_PASSPHRASE }}
                   git_user_signingkey: true
                   git_commit_gpgsign: true
                   trust_level: 5
@@ -95,7 +75,7 @@ jobs:
                   git config --global user.name "${{ steps.import-gpg.outputs.name }}"
                   npx semantic-release@23.0.8 --extends ./.github/files/release.config.cjs
               env:
-                  GITHUB_TOKEN: ${{ steps.import-secrets.outputs.GH_BOT_API_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GH_BOT_API_TOKEN }}
                   GIT_AUTHOR_NAME: ${{ steps.import-gpg.outputs.name }}
                   GIT_AUTHOR_EMAIL: ${{ steps.import-gpg.outputs.email }}
                   GIT_COMMITTER_NAME: ${{ steps.import-gpg.outputs.name }}
