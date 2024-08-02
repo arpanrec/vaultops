@@ -47,7 +47,7 @@ jobs:
             - name: Install python dependencies
               run: |+
                   set -ex
-                  python -m pip install poetry
+                  python -m pip install poetry --upgrade
 
             - name: Install node dependencies
               run: |+
@@ -64,6 +64,7 @@ jobs:
                   set -ex
                   git config --global user.email "${{ steps.import-gpg.outputs.email }}"
                   git config --global user.name "${{ steps.import-gpg.outputs.name }}"
+                  echo "Removing old CHANGELOG.md" && rm -f CHANGELOG.md
                   npx semantic-release@23.0.8 --extends ./.github/files/release.config.cjs
               env:
                   GITHUB_TOKEN: ${{ secrets.GH_BOT_API_TOKEN }}
