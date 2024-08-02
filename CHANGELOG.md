@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/arpanrec/vaultops/compare/3.1.1...3.1.2) (2024-08-02)
+
+
+### Bug Fixes
+
+* Update dependencies ([e6b512e](https://github.com/arpanrec/vaultops/commit/e6b512e0eed9d2336cb2bb5bbeebadd583810082))
+
 ## [3.1.1](https://github.com/arpanrec/vaultops/compare/3.1.0...3.1.1) (2024-08-02)
 
 
