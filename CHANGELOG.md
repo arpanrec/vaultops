@@ -1,6 +1,6 @@
-## [3.1.8](https://github.com/arpanrec/vaultops/compare/3.1.7...3.1.8) (2024-08-02)
+# [3.2.0](https://github.com/arpanrec/vaultops/compare/3.1.8...3.2.0) (2024-08-04)
 
 
-### Bug Fixes
+### Features
 
-* requirements-release ([7cf16b0](https://github.com/arpanrec/vaultops/commit/7cf16b01829b2af1bf4edd341371964b3aa41527))
+* change to release branch ([#10](https://github.com/arpanrec/vaultops/issues/10)) ([e72bb79](https://github.com/arpanrec/vaultops/commit/e72bb79a7e405e341e28443cbd7880e73f29a034))
