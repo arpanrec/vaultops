@@ -1,5 +1,5 @@
 module.exports = {
-    branches: ['main'],
+    branches: ['release'],
     tagFormat: '${version}',
     plugins: [
         [
