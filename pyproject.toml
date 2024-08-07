@@ -27,10 +27,9 @@ bcrypt = "4.2.0"
 python-terraform = "0.10.1"
 pygithub = "2.3.0"
 python-gnupg = "0.5.2"
-boto3 = "1.34.152"
-botocore = "1.34.152"
+boto3 = "1.34.155"
 bitwarden-sdk = "0.1.0"
-boto3-stubs = { extras = ["s3"], version = "1.34.152" }
+boto3-stubs = { extras = ["s3"], version = "1.34.155" }
 # boto3-stubs = { extras = ["all"], version = "1.34.140" } 
 s4cmd = "2.1.0"
 lxml = "5.2.2"
@@ -44,7 +43,7 @@ types-pyyaml = "6.0.12.20240724"
 types-requests = "2.32.0.20240712"
 types-jmespath = "1.0.2.20240106"
 ansible-dev-tools = "24.7.2"
-pyright = "1.1.374"
+pyright = "1.1.375"
 isort = "5.13.2"
 
 [build-system]
