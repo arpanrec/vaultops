@@ -9,16 +9,22 @@ services:
             MINIO_ACCESS_KEY: minio-vaultops
             MINIO_SECRET_KEY: minio-vaultops
         volumes:
-            - minio-vaultops-test:/data
+            - minio-vaultops-data:/data
         command: server /data --console-address ":9001"
     vault-vaultops-test:
         image: hashicorp/vault
         ports:
             - '8200:8200'
+        volumes:
+            - vault-vaultops-data:/vault/file
+            - vault-vaultops-logs:/vault/logs
         environment:
             VAULT_DEV_ROOT_TOKEN_ID: vaultops
             VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+            VAULT_ADDR: http://0.0.0.0:8200
         cap_add:
             - IPC_LOCK
 volumes:
-    minio-vaultops-test:
+    minio-vaultops-data:
+    vault-vaultops-data:
+    vault-vaultops-logs:
