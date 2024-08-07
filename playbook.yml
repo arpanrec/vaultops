@@ -35,9 +35,9 @@
                 signature_version: "{{ vaultops_s3_signature_version }}"
             headers:
                 x-amz-server-side-encryption-customer-algorithm: AES256
-                x-amz-server-side​-encryption​-customer-key: "{{ vaultops_s3_aes256_sse_customer_key_base64 |
+                x-amz-server-side-encryption-customer-key: "{{ vaultops_s3_aes256_sse_customer_key_base64 |
                     b64decode }}"
-                x-amz-server-side​-encryption​-customer-key-MD5: "{{ vaultops_s3_aes256_sse_customer_key_base64 |
+                x-amz-server-side-encryption-customer-key-MD5: "{{ vaultops_s3_aes256_sse_customer_key_base64 |
                     b64decode | md5 }}"
                 x-amz-content-sha256: "{{ item.value['sha256sum'][vault_rv_version] }}"
         loop: "{{ pv_vault_info_map | dict2items }}"
