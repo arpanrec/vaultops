@@ -1,4 +1,4 @@
 ---
 plugin: vault_inventory_builder
 vaultops_tmp_dir_path: /tmp/vaultops
-vaultops_storage_bws_id: 4168400d-540e-47e1-a850-b1a70171a753
+storage_config: /home/arpan/google-drive/tools/s3/vaultops/storage_config.yml
