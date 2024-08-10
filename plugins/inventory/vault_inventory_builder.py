@@ -58,10 +58,18 @@ DOCUMENTATION = r"""
             description: Path to the temporary directory for storing Vault configuration files.
             required: true
             type: srt
-        vaultops_storage_bws_id:
-            description: Bitwarden ID for the storage of Vault configuration files.
+        vault_servers:
+            description: Vault Servers configuration.
             required: true
-            type: srt
+            type: dict
+        vault_secrets:
+            description: Vault Secrets configuration.
+            required: true
+            type: dict
+        vault_storage:
+            description: Vault Storage configuration.
+            required: true
+            type: dict
 """
 
 
