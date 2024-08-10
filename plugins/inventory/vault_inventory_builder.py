@@ -66,7 +66,7 @@ DOCUMENTATION = r"""
             description: Vault Secrets configuration.
             required: true
             type: dict
-        vault_storage:
+        storage_config:
             description: Vault Storage configuration.
             required: true
             type: dict
