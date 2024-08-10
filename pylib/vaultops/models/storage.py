@@ -116,6 +116,9 @@ class StorageConfig(BaseModel):
         self,
         file_path: str,
         file_content: Optional[bytes] = None,
+        content_type="text/plain",  # pylint: disable=unused-argument
+        content_encoding="utf-8",  # pylint: disable=unused-argument
+        content_language="en",  # pylint: disable=unused-argument
         error_on_missing_file: bool = True,
     ) -> Optional[str]:
         """
@@ -123,6 +126,9 @@ class StorageConfig(BaseModel):
         Args:
             file_path: Path of the file.
             file_content: Content of the file.
+            content_type: Type of the content.
+            content_encoding: Encoding of the content.
+            content_language: Language of the content.
             error_on_missing_file: Whether to raise an error if the file is missing.
         Returns:
             Optional[str]: The content of the file.
