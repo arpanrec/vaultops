@@ -1,0 +1,79 @@
+---
+name: Release
+on: # yamllint disable-line rule:truthy
+    push:
+jobs:
+    release:
+        # permissions:
+        #     contents: write
+        #     issues: write
+        #     pull-requests: write
+        #     id-token: write
+        name: Release
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            - name: Import GPG key
+              id: import-gpg
+              uses: crazy-max/ghaction-import-gpg@v6
+              with:
+                  gpg_private_key: ${{ secrets.GH_BOT_GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.GH_BOT_GPG_PASSPHRASE }}
+                  git_user_signingkey: true
+                  git_commit_gpgsign: true
+                  git_tag_gpgsign: false
+                  git_push_gpgsign: false
+                  trust_level: 5
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: lts/*
+                  cache: npm
+                  cache-dependency-path: .github/files/package-lock.json
+
+            - name: prepare requirements-release.txt
+              run: |+
+                  set -ex
+                  grep "^poetry=" .github/files/requirements.txt | tee -a /tmp/requirements-release.txt
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.10"
+                  cache: pip
+                  cache-dependency-path: /tmp/requirements-release.txt
+
+            - name: Install python dependencies
+              run: |+
+                  set -ex
+                  python -m pip install -r /tmp/requirements-release.txt
+
+            - name: Install node dependencies
+              run: |+
+                  set -ex
+                  npm i semantic-release@24.0.0 \
+                      @semantic-release/commit-analyzer@13.0.0 \
+                      @semantic-release/release-notes-generator@14.0.1 \
+                      @semantic-release/changelog@6.0.3 \
+                      @semantic-release/exec@6.0.3 \
+                      @semantic-release/git@10.0.1 -D
+
+            - name: Release
+              run: |
+                  set -ex
+                  git config --global user.email "${{ steps.import-gpg.outputs.email }}"
+                  git config --global user.name "${{ steps.import-gpg.outputs.name }}"
+                  echo "Removing old CHANGELOG.md" && rm -f CHANGELOG.md
+                  npx semantic-release@23.0.8 --extends ./.github/files/release.config.cjs
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GH_BOT_API_TOKEN }}
+                  GIT_AUTHOR_NAME: ${{ steps.import-gpg.outputs.name }}
+                  GIT_AUTHOR_EMAIL: ${{ steps.import-gpg.outputs.email }}
+                  GIT_COMMITTER_NAME: ${{ steps.import-gpg.outputs.name }}
+                  GIT_COMMITTER_EMAIL: ${{ steps.import-gpg.outputs.email }}

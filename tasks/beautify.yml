@@ -1,0 +1,4 @@
+---
+- name: Vaultops | Vault | Patch | BeautifyTerminal
+  ansible.builtin.import_role:
+      name: arpanrec.nebula.terminal

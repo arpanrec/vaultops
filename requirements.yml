@@ -1,0 +1,21 @@
+---
+collections:
+    - name: community.general
+      version: 9.1.0
+    - name: community.crypto
+      version: 2.20.0
+    - name: amazon.aws
+      version: 8.1.0
+    - name: community.docker
+      version: 3.10.4
+    - name: ansible.posix
+      version: 1.5.2
+    - name: community.hashi_vault
+      version: 6.2.0
+    - name: arpanrec.nebula
+      type: git
+      source: https://github.com/arpanrec/arpanrec.nebula.git
+      version: 6.0.5
+roles:
+    - name: geerlingguy.docker
+      version: 7.3.0

@@ -1,0 +1,30 @@
+---
+- name: Vaultops | Vault Virtual Node Server | DR | Populate facts
+  ansible.builtin.setup:
+      gather_subset:
+          - hardware
+
+- name: Vaultops | Vault Virtual Node Server | DR | Populate service facts
+  ansible.builtin.service_facts:
+
+- name: Vaultops | Vault Virtual Node Server | DR | Disable vault service
+  ansible.builtin.systemd:
+      name: "{{ pv_vault_systemd_service }}@{{ inventory_hostname }}.service"
+      enabled: false
+      state: stopped
+      force: true
+
+- name: Vaultops | Vault Virtual Node Server | DR | Creating raft peers.json
+  ansible.builtin.copy:
+      content: "{{ pv_vault_dr_lost_quorum_recovery_nodes | to_nice_json }}"
+      mode: "0o600"
+      backup: false
+      owner: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+      dest: "{{ pv_vault_base_path }}/{{ inventory_hostname }}/data/raft/peers.json"
+
+- name: Vaultops | Vault Virtual Node Server | DR | Enable vault service
+  ansible.builtin.systemd:
+      name: "{{ pv_vault_systemd_service }}@{{ inventory_hostname }}.service"
+      enabled: true
+      state: started

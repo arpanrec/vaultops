@@ -1,0 +1,18 @@
+storage "raft" {
+  path                          = "{{ pv_vault_data_dir }}"
+  node_id                       = "{{ pv_vault_node_id }}"
+  autopilot_reconcile_interval  = "{{ pv_vault_autopilot_reconcile_interval_seconds }}s"
+  autopilot_update_interval     = "{{ pv_vault_autopilot_update_interval_seconds }}s"
+
+
+  {% for retry_join_node_id, retry_join_node_details in pv_vault_retry_join_nodes.items() %}
+
+  retry_join {
+    leader_api_addr = "{{ retry_join_node_details.api_addr }}"
+    leader_ca_cert_file = "{{ pv_vault_tls_dir }}/vault-retry-join-{{ retry_join_node_id }}.ca.pem"
+    leader_client_cert_file = "{{ pv_vault_tls_dir }}/vault-retry-join-{{ retry_join_node_id }}.fullchain.pem"
+    leader_client_key_file = "{{ pv_vault_tls_dir }}/vault-retry-join-{{ retry_join_node_id }}.key"
+  }
+
+  {% endfor %}
+}

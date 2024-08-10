@@ -1,0 +1,6 @@
+---
+skip_list:
+    - none
+verbosity: 0
+exclude_paths:
+    - vault_config
