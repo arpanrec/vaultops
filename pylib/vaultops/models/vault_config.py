@@ -17,18 +17,15 @@ class VaultConfig(BaseSettings, extra="allow"):
 
     Attributes:
         vaultops_tmp_dir_path (str): The root directory for storing temporary files.
-        vault_servers (Dict[str, VaultServer]): The Vault servers.
-        vault_secrets (VaultSecrets): The secrets required for interacting with HashiCorp Vault.
         storage_config (StorageConfig): The storage configuration.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
 
     vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
-    vault_servers: Dict[str, VaultServer]
-    vault_secrets: VaultSecrets
     storage_config: StorageConfig
 
+    __vault_config_dict: Dict[str, Any] = {}
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
     __vault_terraform_state_key = "terraform.tfstate"
@@ -39,6 +36,9 @@ class VaultConfig(BaseSettings, extra="allow"):
 
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
+
+        __vault_config_dict = yaml.safe_load(str(self.storage_config.storage_ops(file_path=self.__vault_config_key)))
+        self.__vault_config_dict.update(__vault_config_dict)
 
     @computed_field(return_type=str)  # type: ignore
     @property
@@ -63,6 +63,33 @@ class VaultConfig(BaseSettings, extra="allow"):
             return f"DNS:{self.vault_secrets.vault_ha_hostname}"
         except Exception as e:
             raise e
+
+    @computed_field(return_type=VaultSecrets)  # type: ignore
+    @property
+    def vault_secrets(self) -> VaultSecrets:
+        """
+        Returns the secrets stored in the file.
+
+        Returns:
+            VaultSecrets: The secrets stored in the file.
+        """
+
+        return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])
+
+    @computed_field(return_type=Dict[str, VaultServer])  # type: ignore
+    @property
+    def vault_servers(self) -> Dict[str, VaultServer]:
+        """
+        Returns the Vault servers.
+
+        Returns:
+            Dict[str, VaultServer]: The Vault servers.
+        """
+
+        return {
+            name: VaultServer.model_validate(server_dict)
+            for name, server_dict in self.__vault_config_dict["vault_servers"].items()
+        }
 
     def tf_state(self, state: Optional[str] = None) -> Optional[str]:
         """

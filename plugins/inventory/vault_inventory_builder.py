@@ -58,14 +58,6 @@ DOCUMENTATION = r"""
             description: Path to the temporary directory for storing Vault configuration files.
             required: true
             type: srt
-        vault_servers:
-            description: Vault Servers configuration.
-            required: true
-            type: dict
-        vault_secrets:
-            description: Vault Secrets configuration.
-            required: true
-            type: dict
         storage_config:
             description: Vault Storage configuration.
             required: true

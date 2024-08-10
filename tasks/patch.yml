@@ -1,9 +1,24 @@
 ---
-- name: Vaultops | Vault | Patch | Install | Set Public Key | Set authorized
-  ansible.posix.authorized_key:
-      user: "{{ ansible_ssh_user }}"
+- name: Vaultops | Vault | Patch | Install | Create wheel group
+  ansible.builtin.group:
+      name: wheel
       state: present
-      key: "{{ ansible_ssh_public_key_content }}"
+
+- name: Vaultops | Vault | Patch | Install | Make sure zsh is installed
+  ansible.builtin.apt:
+      name: zsh
+      state: present
+      update_cache: true
+
+- name: Vaultops | Vault | Patch | Install | Create ssh user
+  ansible.builtin.import_role:
+      name: arpanrec.nebula.user_add
+  vars:
+      user_add_rv_username: "{{ ansible_user }}"
+      user_add_rv_user_default_shell: "/bin/zsh"
+      user_add_rv_user_extra_groups: ["wheel"]
+      user_add_rv_ssh_access_public_key_content_list:
+          - "{{ ansible_ssh_public_key_content }}"
 
 - name: Vaultops | Vault | Patch | Install | System
   ansible.builtin.import_role:
@@ -14,6 +29,7 @@
           - python3-cryptography
           - davfs2
       linux_patching_rv_install_devel_packages: false
+      linux_patching_rv_root_ca_pem_content: "{{ root_ca_cert_pem }}"
 
 - name: Vaultops | Vault | Patch | Install | SSH Hardening
   ansible.builtin.import_role:

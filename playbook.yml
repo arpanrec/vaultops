@@ -45,6 +45,7 @@
   tasks:
       - name: Vaultops | Vault | Patch | Install
         become: true
+        become_user: root
         tags: patch,patch_install,never
         ansible.builtin.import_tasks:
             file: tasks/patch.yml
