@@ -5,7 +5,6 @@ from typing import Optional
 
 import boto3
 from ansible.inventory.data import InventoryData  # type: ignore
-from bitwarden_sdk import BitwardenClient, DeviceType, client_settings_from_dict  # type: ignore
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
