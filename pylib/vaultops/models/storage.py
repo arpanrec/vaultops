@@ -116,9 +116,6 @@ class StorageConfig(BaseModel):
         self,
         file_path: str,
         file_content: Optional[bytes] = None,
-        content_type="text/plain",  # pylint: disable=unused-argument
-        content_encoding="utf-8",  # pylint: disable=unused-argument
-        content_language="en",  # pylint: disable=unused-argument
         error_on_missing_file: bool = True,
     ) -> Optional[str]:
         """
@@ -126,9 +123,6 @@ class StorageConfig(BaseModel):
         Args:
             file_path: Path of the file.
             file_content: Content of the file.
-            content_type: Type of the content.
-            content_encoding: Encoding of the content.
-            content_language: Language of the content.
             error_on_missing_file: Whether to raise an error if the file is missing.
         Returns:
             Optional[str]: The content of the file.
@@ -144,7 +138,7 @@ class StorageConfig(BaseModel):
         try:
             base_dir = os.path.dirname(vault_file_path)
             os.makedirs(base_dir, exist_ok=True)
-            with open(file_path, "wb") as file:
+            with open(vault_file_path, "wb") as file:
                 file.write(file_content)
             return None
         except Exception as e:
