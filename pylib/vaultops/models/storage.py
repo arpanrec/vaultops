@@ -1,7 +1,6 @@
 import base64
-import json
 import os
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any
 
 import boto3
 from ansible.inventory.data import InventoryData  # type: ignore
@@ -9,7 +8,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class StorageConfig(BaseModel):
@@ -21,15 +20,22 @@ class StorageConfig(BaseModel):
         option: The storage options.
     """
 
-    type: str = Field(description="The type of storage")
-    option: Dict = Field(description="The storage options")
+    type: str
+    option: Dict
 
-    def storage_ops(self) -> Callable[[str, bytes | None, str, str, str, bool], str | None] | Any:
+    def storage_ops(self, *args: Any, **kwargs: Any) -> Optional[str]:
+        """
+        Args:
+            *args: Any
+            **kwargs: Any
+        Returns:
+            Optional[str]: The content of the file.
+        """
         if self.type == "s3":
-            return self.__s3_storage_ops
+            return self.__s3_storage_ops(*args, **kwargs)
 
         if self.type == "local":
-            return self.__local_storage_ops
+            return self.__local_storage_ops(*args, **kwargs)
 
         raise ValueError("Invalid storage type")
 
@@ -110,9 +116,9 @@ class StorageConfig(BaseModel):
         self,
         file_path: str,
         file_content: Optional[bytes] = None,
-        content_type="text/plain",
-        content_encoding="utf-8",
-        content_language="en",
+        content_type="text/plain",  # pylint: disable=unused-argument
+        content_encoding="utf-8",  # pylint: disable=unused-argument
+        content_language="en",  # pylint: disable=unused-argument
         error_on_missing_file: bool = True,
     ) -> Optional[str]:
         """
@@ -151,4 +157,3 @@ class StorageConfig(BaseModel):
         Args:
             inventory: The path to the Ansible inventory file.
         """
-        pass

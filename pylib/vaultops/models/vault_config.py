@@ -25,23 +25,20 @@ class VaultConfig(BaseSettings, extra="allow"):
     model_config = SettingsConfigDict(validate_default=False)
 
     vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
-    vault_servers: Dict[str, VaultServer] = Field(description="The Vault servers")
-    vault_secrets: VaultSecrets = Field(description="The secrets required for interacting with HashiCorp Vault")
-    storage_config: StorageConfig = Field(description="The storage configuration")
+    vault_servers: Dict[str, VaultServer]
+    vault_secrets: VaultSecrets
+    storage_config: StorageConfig
 
     __vault_config_key = "vault_config.yml"
     __vault_unseal_keys_key = "vault_unseal_keys.yml"
     __vault_terraform_state_key = "terraform.tfstate"
     __vault_raft_snapshot_key = "vault_raft_snapshot.snap"
-    __vault_config_dict: Dict[str, Any] = {}
 
     def __init__(self, **data: Any):
         super().__init__(**data)
 
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
-        pre_requisites = yaml.safe_load(str(self.vaultops_storage.storage_ops(file_path=self.__vault_config_key)))
-        self.__vault_config_dict.update(pre_requisites)
 
     @computed_field(return_type=str)  # type: ignore
     @property
@@ -72,13 +69,13 @@ class VaultConfig(BaseSettings, extra="allow"):
         Returns True if the Terraform state file is present; otherwise, returns False.
         """
         if state:
-            self.vaultops_storage.storage_ops(
+            self.storage_config.storage_ops(
                 file_path=self.__vault_terraform_state_key,
                 file_content=state.encode("utf-8"),
                 content_type="application/json",
             )
             return state
-        con_str: Optional[str] = self.vaultops_storage.storage_ops(
+        con_str: Optional[str] = self.storage_config.storage_ops(
             file_path=self.__vault_terraform_state_key,
             error_on_missing_file=False,
         )
@@ -93,13 +90,13 @@ class VaultConfig(BaseSettings, extra="allow"):
         """
 
         if unseal_keys:
-            self.vaultops_storage.storage_ops(
+            self.storage_config.storage_ops(
                 file_path=self.__vault_unseal_keys_key,
                 file_content=yaml.dump(unseal_keys).encode("utf-8"),
                 content_type="text/yaml",
             )
             return unseal_keys
-        con_str: Optional[str] = self.vaultops_storage.storage_ops(
+        con_str: Optional[str] = self.storage_config.storage_ops(
             file_path=self.__vault_unseal_keys_key,
             error_on_missing_file=False,
         )
@@ -115,7 +112,7 @@ class VaultConfig(BaseSettings, extra="allow"):
             snapshot: The Raft snapshot to save.
         """
         if isinstance(snapshot, bytes):
-            self.vaultops_storage.storage_ops(
+            self.storage_config.storage_ops(
                 file_path=self.__vault_raft_snapshot_key,
                 file_content=snapshot,
                 content_type="application/octet-stream",
