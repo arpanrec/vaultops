@@ -27,6 +27,7 @@ def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]]) -> VaultCo
     os.makedirs(vaultops_tmp_dir_path, exist_ok=True)
     ansible_inventory_dict["vaultops_tmp_dir_path"] = vaultops_tmp_dir_path
 
+    # storage_config can be a file path or a dictionary
     storage_config_val = ansible_inventory_dict["storage_config"]
     if isinstance(storage_config_val, str):
         LOGGER.info("Reading storage config file: %s", str(storage_config_val))
