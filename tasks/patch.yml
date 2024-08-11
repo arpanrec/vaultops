@@ -14,7 +14,7 @@
   ansible.builtin.import_role:
       name: arpanrec.nebula.user_add
   vars:
-      user_add_rv_username: "{{ ansible_user }}"
+      user_add_rv_username: "{{ ansible_vaultops_ssh_user }}"
       user_add_rv_user_default_shell: "/bin/zsh"
       user_add_rv_user_extra_groups: ["wheel"]
       user_add_rv_ssh_access_public_key_content_list:
