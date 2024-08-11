@@ -63,7 +63,7 @@ DOCUMENTATION = r"""
                 - Vault Storage configuration.
                 - This can be dict or path to the file containing the storage configuration. 
             required: true
-            type: dict
+            type: dict | str
 """
 
 
