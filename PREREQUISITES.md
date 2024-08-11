@@ -40,7 +40,8 @@ Make sure the `plugin`  is set to `vault_inventory_builder`.
 ---
 plugin: vault_inventory_builder
 vaultops_tmp_dir_path: # TODO: The temporary directory path., Type: str
-vaultops_storage_bws_id: # TODO: Bitwarden ID for the storage of Vault configuration files. Set `BWS_ACCESS_TOKEN` environment variable., Type: str
+storage_config: # TODO: To store vault snapshot and terraform state, Type: str (Path to the file) | Dict: Actual Storage configuration
+vault_config: # TODO: Location of the vault configuration file, Type: str (Path to the file) | Dict: Actual Vault configuration
 ```
 
 * You can change this file in [ansible.cfg](ansible.cfg#L2) file.
@@ -50,13 +51,16 @@ vaultops_storage_bws_id: # TODO: Bitwarden ID for the storage of Vault configura
 inventory = inventory.yml
 ```
 
-## Vault Servers, Nodes and Secrets
+## (vault_config) Vault Config, Vault Servers, Nodes and Secrets
 
-file: `vault_config.yml`
+vault_config is a dictionary that contains the configuration of the vault , secrets and ansible inventory.
 
-This file should be located in the root directory of the vaultops storage : `vaultops_backend`.
+```yaml
+vault_servers: # TODO: The servers of the vault cluster, Type: Dict[Str, Dict]
+vault_secrets: # TODO: The secrets of the vault cluster, Type: Dict[Str, Any]
+```
 
-### Vault Servers, Nodes and Secrets: vault_servers
+### (vault_config) Vault Config, Vault Servers, Nodes and Secrets: vault_servers
 
 It's mandatory to use TLS and mTLS for Vault because Vault is a secrets management tool,
 and using it without TLS and mTLS is not secure.
@@ -104,7 +108,7 @@ vault_servers:
 Priority of the `cluster_ip` and `api_ip` is higher than `cluster_addr_fqdn` and `api_addr_fqdn`. These options will
 be used instead of the server level if they are set on the `vault_node` level.
 
-### Vault Servers, Nodes and Secrets: vault_secrets
+### (vault_config) Vault Config, Vault Servers, Nodes and Secrets: vault_secrets
 
 ```yaml
 ---
