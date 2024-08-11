@@ -66,7 +66,7 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--inventory", default="inventory.yml")
-    parser.add_argument('--github', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument("--github", action=argparse.BooleanOptionalAction, default=False)
     args = parser.parse_args()
     max_vaultops_retries: int = 5
     max_vaultops_retry_wait: int = 10
