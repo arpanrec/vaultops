@@ -16,7 +16,7 @@ Look for the word `TODO` in the file, and change the value to your value.
     * Storage System Configuration
       * In order to store the vault configuration files, you need to have a storage system.
 
-      ```json
+        ```json
         {
             "vaultops_s3_aes256_sse_customer_key_base64": "base64-encoded-key",
             "vaultops_s3_bucket_name": "bucket-name",
@@ -26,7 +26,7 @@ Look for the word `TODO` in the file, and change the value to your value.
             "vaultops_s3_signature_version": "signature-version",
             "vaultops_s3_region": "region"
         }
-      ```
+        ```
 
 ## [Inventory File](inventory.yml)
 
@@ -58,7 +58,8 @@ This file should be located in the root directory of the vaultops storage : `vau
 
 ### Vault Servers, Nodes and Secrets: vault_servers
 
-It's mandatory to use TLS and mTLS for Vault because Vault is a secrets management tool, and using it without TLS and mTLS is not secure.
+It's mandatory to use TLS and mTLS for Vault because Vault is a secrets management tool,
+and using it without TLS and mTLS is not secure.
 Cloud IP addresses are not allowed, because they can change.
 
 Vault node id will be `<server-name>-<node-name>`, for example, server1-node1, server1-node2, server2-node1,
