@@ -2,7 +2,6 @@ import ipaddress
 import os
 from typing import Any, Dict, Optional
 
-import time
 import yaml
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -27,10 +26,10 @@ class VaultConfig(BaseSettings, extra="allow"):
     vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
     storage_config: StorageConfig
     vault_config: Dict[str, Any]
+    run_id: str
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
 
@@ -89,16 +88,20 @@ class VaultConfig(BaseSettings, extra="allow"):
         """
         Returns True if the Terraform state file is present; otherwise, returns False.
         """
-        __vault_terraform_state_key = "terraform.tfstate"
         if state:
             self.storage_config.storage_ops(
-                file_path=__vault_terraform_state_key,
+                file_path="terraform-latest.tfstate.json",
+                file_content=state.encode("utf-8"),
+                content_type="application/json",
+            )
+            self.storage_config.storage_ops(
+                file_path=f"terraform-{self.run_id}.tfstate.json",
                 file_content=state.encode("utf-8"),
                 content_type="application/json",
             )
             return state
         con_str: Optional[str] = self.storage_config.storage_ops(
-            file_path=__vault_terraform_state_key,
+            file_path="terraform-latest.tfstate.json",
             error_on_missing_file=False,
         )
         return con_str
@@ -134,10 +137,9 @@ class VaultConfig(BaseSettings, extra="allow"):
             snapshot: The Raft snapshot to save.
         """
 
-        epoch_time = int(time.time())
         if isinstance(snapshot, bytes):
             self.storage_config.storage_ops(
-                file_path=f"vault-raft-snapshot-{epoch_time}.snap",
+                file_path=f"vault-raft-snapshot-{self.run_id}.snap",
                 file_content=snapshot,
                 content_type="application/octet-stream",
             )
