@@ -25,7 +25,7 @@ import os
 import sys
 import time
 
-from vaultops.github_setup import setup_github
+from .github_setup import setup_github
 
 from . import VaultOpsRetryError, VaultOpsSafeExit, vault_setup
 from .models.ha_client import VaultHaClient
