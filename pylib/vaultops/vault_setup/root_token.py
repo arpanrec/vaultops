@@ -9,11 +9,7 @@ import time
 from typing import Any, Dict, List, Optional, Union
 
 import hvac  # type: ignore
-from hvac.exceptions import (  # type: ignore
-    InternalServerError,
-    InvalidPath,
-    InvalidRequest,
-)
+from hvac.exceptions import InternalServerError, InvalidPath, InvalidRequest  # type: ignore
 from prettytable import PrettyTable
 
 from .. import VaultOpsRetryError
