@@ -2,8 +2,8 @@ import ipaddress
 import os
 from typing import Any, Dict, Optional
 
-import yaml
 import time
+import yaml
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
