@@ -33,7 +33,7 @@ vault_config: # TODO: Location of the vault configuration file, Type: str (Path 
 inventory = inventory.yml
 ```
 
-## (storage_config) Storage Configuration
+## Storage Configuration
 
 Storage for terraform state and vault snapshot.
 
@@ -42,7 +42,7 @@ type: # TODO: The type of the storage, Type: str, Options: [s3, local]
 option: # TODO: The storage configuration, Type: Dict[Str, Any]
 ```
 
-### (storage_config) Storage Configuration, Option: local
+### Storage Configuration, Option: local
 
 ```yaml
 ---
@@ -51,7 +51,7 @@ option:
     path: # TODO: The path of the local storage, Type: str
 ```
 
-### (storage_config) Storage Configuration, Option: S3
+### Storage Configuration, Option: S3
 
 ```yaml
 ---
@@ -66,7 +66,7 @@ option:
     vaultops_s3_region: # TODO: The region of the bucket, Type: str
 ```
 
-## (vault_config) Vault Config, Vault Servers, Nodes and Secrets
+## Vault Config, Vault Servers, Nodes and Secrets
 
 vault_config is a dictionary that contains the configuration of the vault , secrets and ansible inventory.
 
@@ -75,7 +75,7 @@ vault_servers: # TODO: The servers of the vault cluster, Type: Dict[Str, Dict]
 vault_secrets: # TODO: The secrets of the vault cluster, Type: Dict[Str, Any]
 ```
 
-### (vault_config) Vault Config, Vault Servers, Nodes and Secrets: vault_servers
+### Vault Config, Vault Servers, Nodes and Secrets: vault_servers
 
 It's mandatory to use TLS and mTLS for Vault because Vault is a secrets management tool,
 and using it without TLS and mTLS is not secure.
@@ -123,7 +123,7 @@ vault_servers:
 Priority of the `cluster_ip` and `api_ip` is higher than `cluster_addr_fqdn` and `api_addr_fqdn`. These options will
 be used instead of the server level if they are set on the `vault_node` level.
 
-### (vault_config) Vault Config, Vault Servers, Nodes and Secrets: vault_secrets
+### Vault Config, Vault Servers, Nodes and Secrets: vault_secrets
 
 ```yaml
 ---
