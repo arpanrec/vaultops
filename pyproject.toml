@@ -6,7 +6,7 @@ line-length = 120
 
 [tool.poetry]
 name = "vaultops"
-version = "3.2.2"
+version = "3.2.3"
 description = "Install Hashicorp Vault"
 authors = ["arpan <arpan.rec@gmail.com>"]
 license = "GLWTS"
@@ -18,18 +18,18 @@ scripts = { "vaultops" = "vaultops.__main__:main" }
 [tool.poetry.dependencies]
 python = "^3.10"
 ansible = "10.2.0"
+cryptography = "43.0.0"
 jmespath = "1.0.1"
 pydantic = "2.8.2"
 pydantic-settings = "2.4.0"
 hvac = "2.3.0"
-prettytable = "3.10.2"
+prettytable = "3.11.0"
 bcrypt = "4.2.0"
 python-terraform = "0.10.1"
 pygithub = "2.3.0"
 python-gnupg = "0.5.2"
-boto3 = "1.34.157"
-boto3-stubs = { extras = ["s3"], version = "1.34.157" }
-# boto3-stubs = { extras = ["all"], version = "1.34.140" } 
+boto3 = "1.34.158"
+boto3-stubs = { extras = ["s3"], version = "1.34.158" } # extras = ["all"]
 mypy = "1.11.1"
 pylint = "3.2.6"
 ansible-lint = { version = "24.7.0", markers = 'platform_system != "Windows"' }

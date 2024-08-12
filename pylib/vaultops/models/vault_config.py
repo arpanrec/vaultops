@@ -2,6 +2,7 @@ import ipaddress
 import os
 from typing import Any, Dict, Optional
 
+import time
 import yaml
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -18,27 +19,20 @@ class VaultConfig(BaseSettings, extra="allow"):
     Attributes:
         vaultops_tmp_dir_path (str): The root directory for storing temporary files.
         storage_config (StorageConfig): The storage configuration.
+        vault_config (Dict[str, Any]): The Vault configuration dictionary.
     """
 
     model_config = SettingsConfigDict(validate_default=False)
 
     vaultops_tmp_dir_path: str = Field(description="The root directory for storing temporary files")
     storage_config: StorageConfig
-
-    __vault_config_dict: Dict[str, Any] = {}
-    __vault_config_key = "vault_config.yml"
-    __vault_unseal_keys_key = "vault_unseal_keys.yml"
-    __vault_terraform_state_key = "terraform.tfstate"
-    __vault_raft_snapshot_key = "vault_raft_snapshot.snap"
+    vault_config: Dict[str, Any]
 
     def __init__(self, **data: Any):
         super().__init__(**data)
 
         if not os.path.isabs(self.vaultops_tmp_dir_path):
             raise ValueError("vaultops_tmp_dir_path must be an absolute path")
-
-        __vault_config_dict = yaml.safe_load(str(self.storage_config.storage_ops(file_path=self.__vault_config_key)))
-        self.__vault_config_dict.update(__vault_config_dict)
 
     @computed_field(return_type=str)  # type: ignore
     @property
@@ -74,7 +68,7 @@ class VaultConfig(BaseSettings, extra="allow"):
             VaultSecrets: The secrets stored in the file.
         """
 
-        return VaultSecrets.model_validate(self.__vault_config_dict["vault_secrets"])
+        return VaultSecrets.model_validate(self.vault_config["vault_secrets"])
 
     @computed_field(return_type=Dict[str, VaultServer])  # type: ignore
     @property
@@ -88,22 +82,23 @@ class VaultConfig(BaseSettings, extra="allow"):
 
         return {
             name: VaultServer.model_validate(server_dict)
-            for name, server_dict in self.__vault_config_dict["vault_servers"].items()
+            for name, server_dict in self.vault_config["vault_servers"].items()
         }
 
     def tf_state(self, state: Optional[str] = None) -> Optional[str]:
         """
         Returns True if the Terraform state file is present; otherwise, returns False.
         """
+        __vault_terraform_state_key = "terraform.tfstate"
         if state:
             self.storage_config.storage_ops(
-                file_path=self.__vault_terraform_state_key,
+                file_path=__vault_terraform_state_key,
                 file_content=state.encode("utf-8"),
                 content_type="application/json",
             )
             return state
         con_str: Optional[str] = self.storage_config.storage_ops(
-            file_path=self.__vault_terraform_state_key,
+            file_path=__vault_terraform_state_key,
             error_on_missing_file=False,
         )
         return con_str
@@ -115,16 +110,16 @@ class VaultConfig(BaseSettings, extra="allow"):
         Returns:
             Dict[str, str]: The Vault unseal keys.
         """
-
+        __vault_unseal_keys_key = "vault_unseal_keys.yml"
         if unseal_keys:
             self.storage_config.storage_ops(
-                file_path=self.__vault_unseal_keys_key,
+                file_path=__vault_unseal_keys_key,
                 file_content=yaml.dump(unseal_keys).encode("utf-8"),
                 content_type="text/yaml",
             )
             return unseal_keys
         con_str: Optional[str] = self.storage_config.storage_ops(
-            file_path=self.__vault_unseal_keys_key,
+            file_path=__vault_unseal_keys_key,
             error_on_missing_file=False,
         )
         if not con_str:
@@ -138,9 +133,11 @@ class VaultConfig(BaseSettings, extra="allow"):
         Args:
             snapshot: The Raft snapshot to save.
         """
+
+        epoch_time = int(time.time())
         if isinstance(snapshot, bytes):
             self.storage_config.storage_ops(
-                file_path=self.__vault_raft_snapshot_key,
+                file_path=f"vault-raft-snapshot-{epoch_time}.snap",
                 file_content=snapshot,
                 content_type="application/octet-stream",
             )

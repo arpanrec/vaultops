@@ -59,9 +59,11 @@ DOCUMENTATION = r"""
             required: true
             type: srt
         storage_config:
-            description: Vault Storage configuration.
+            description:
+                - Vault Storage configuration.
+                - This can be dict or path to the file containing the storage configuration. 
             required: true
-            type: dict
+            type: dict | str
 """
 
 
