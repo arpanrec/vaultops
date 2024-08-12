@@ -35,6 +35,13 @@ def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]]) -> VaultCo
         with open(str(storage_config_val), "r", encoding="utf-8") as storage_config_file:
             ansible_inventory_dict["storage_config"] = yaml.safe_load(storage_config_file)
 
+    # vault_config can be a file path or a dictionary
+    vault_config_val = ansible_inventory_dict["vault_config"]
+    if isinstance(vault_config_val, str):
+        LOGGER.info("Reading vault config file: %s", str(vault_config_val))
+        with open(str(vault_config_val), "r", encoding="utf-8") as vault_config_file:
+            ansible_inventory_dict["vault_config"] = yaml.safe_load(vault_config_file)
+
     vault_config = VaultConfig.model_validate(ansible_inventory_dict, strict=False)
 
     return vault_config
