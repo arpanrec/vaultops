@@ -1,14 +1,9 @@
 ---
 name: Release
-on: # yamllint disable-line rule:truthy
+"on":
     push:
 jobs:
     release:
-        # permissions:
-        #     contents: write
-        #     issues: write
-        #     pull-requests: write
-        #     id-token: write
         name: Release
         runs-on: ubuntu-latest
         steps:
