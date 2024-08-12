@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from typing import Any, Dict, Union
 
 import yaml
@@ -14,14 +15,13 @@ def build_vault_config(ansible_inventory: Union[str, Dict[str, Any]]) -> VaultCo
     Build the VaultConfig object from the given configuration.
     """
 
-    ansible_inventory_dict: Dict[str, Any]
-
+    ansible_inventory_dict: Dict[str, Any] = {"run_id": time.strftime("%Y-%m-%d-%H-%M-%S")}
     if isinstance(ansible_inventory, str):
         LOGGER.info("Reading inventory file: %s", str(ansible_inventory))
         with open(str(ansible_inventory), "r", encoding="utf-8") as ansible_inventory_file:
-            ansible_inventory_dict = yaml.safe_load(ansible_inventory_file)
+            ansible_inventory_dict.update(yaml.safe_load(ansible_inventory_file))
     else:
-        ansible_inventory_dict = ansible_inventory
+        ansible_inventory_dict.update(ansible_inventory)
 
     # Ensure that the vaultops_tmp_dir_path exists and is an absolute path
     vaultops_tmp_dir_path = os.path.abspath(ansible_inventory_dict["vaultops_tmp_dir_path"])
