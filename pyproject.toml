@@ -42,6 +42,7 @@ types-jmespath = "1.0.2.20240106"
 ansible-dev-tools = "24.7.2"
 pyright = "1.1.375"
 isort = "5.13.2"
+bandit = { extras = ["toml"], version = "1.7.9" }
 
 [build-system]
 requires = ["poetry-core"]
