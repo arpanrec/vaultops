@@ -1,0 +1,8 @@
+listener "tcp" {
+  address                             = "0.0.0.0:{{ pv_vault_node_port }}"
+  tls_disable                         = false
+  tls_cert_file                       = "{{ pv_vault_tls_dir }}/vault.fullchain.pem"
+  tls_key_file                        = "{{ pv_vault_tls_dir }}/vault.key"
+  tls_require_and_verify_client_cert  = true
+  tls_client_ca_file                  = "{{ pv_vault_tls_dir }}/ca-client-mtls-crt.pem"
+}

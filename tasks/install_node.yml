@@ -1,0 +1,145 @@
+---
+- name: Vaultops | Vault Virtual Node Server | Install | Node | Set Node Name
+  ansible.builtin.set_fact:
+      pv_vault_node_id: "{{ inventory_hostname }}"
+      pv_vault_node_port: "{{ pv_vault_raft_node_details.node_port }}"
+      pv_vault_cluster_port: "{{ pv_vault_raft_node_details.cluster_port }}"
+      pv_vault_retry_join_nodes: "{{ pv_vault_raft_node_details.retry_join_nodes }}"
+      pv_vault_cluster_addr_fqdn: "{{ pv_vault_raft_node_details.cluster_addr_fqdn }}"
+      pv_vault_api_addr_fqdn: "{{ pv_vault_raft_node_details.api_addr_fqdn }}"
+      pv_vault_api_addr: "{{ pv_vault_raft_node_details.api_addr }}"
+      pv_vault_cluster_addr: "{{ pv_vault_raft_node_details.cluster_addr }}"
+      pv_vault_subject_alt_name: "{{ pv_vault_raft_node_details.subject_alt_name }}"
+
+- name: Vaultops | Vault Virtual Node Server | Install | Node | Set Directory Paths
+  ansible.builtin.set_fact:
+      pv_vault_config_dir: "{{ pv_vault_base_path }}/{{ pv_vault_node_id }}/config"
+      pv_vault_data_dir: "{{ pv_vault_base_path }}/{{ pv_vault_node_id }}/data"
+      pv_vault_log_dir: "{{ pv_vault_base_path }}/{{ pv_vault_node_id }}/log"
+      pv_vault_tls_dir: "{{ pv_vault_base_path }}/{{ pv_vault_node_id }}/tls"
+      pv_vault_backup_dir: "{{ pv_vault_backup_base_path }}/{{ pv_vault_node_id }}"
+
+- name: Vaultops | Vault Virtual Node Server | Install | Node | Create Directory
+  ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      owner: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+      mode: "0755"
+  loop:
+      - "{{ pv_vault_config_dir }}"
+      - "{{ pv_vault_data_dir }}"
+      - "{{ pv_vault_log_dir }}"
+      - "{{ pv_vault_tls_dir }}"
+      - "{{ pv_vault_backup_dir }}"
+
+- name: Vaultops | Vault Virtual Node Server | Install | Node | Create Configuration File
+  ansible.builtin.template:
+      src: config.{{ item }}.hcl.j2
+      dest: "{{ pv_vault_config_dir }}/{{ item }}.hcl"
+      owner: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+      mode: "0640"
+      backup: false
+  loop:
+      - common
+      - listener
+      - storage
+  timeout: 300
+
+- name: Vaultops | Vault Virtual Node Server | Install | TLS
+  block:
+      - name: Vaultops | Vault Virtual Node Server | Install | TLS | Create Openssl Private Key
+        community.crypto.openssl_privatekey:
+            path: "{{ pv_vault_tls_dir }}/vault.key"
+            type: RSA
+            size: 4096
+            backup: false
+            mode: "0o600"
+            owner: "{{ pv_vault_user }}"
+            group: "{{ pv_vault_group }}"
+
+      - name: Vaultops | Vault Virtual Node Server | Install | TLS | Create Openssl Certificate Signing Request
+        community.crypto.openssl_csr:
+            path: "{{ pv_vault_tls_dir }}/vault.csr"
+            privatekey_path: "{{ pv_vault_tls_dir }}/vault.key"
+            common_name: "{{ pv_vault_node_id }}"
+            basic_constraints: CA:FALSE
+            basic_constraints_critical: true
+            key_usage:
+                - digitalSignature
+                - keyEncipherment
+            extended_key_usage:
+                - serverAuth
+            subject_alt_name: "{{ pv_vault_subject_alt_name }}"
+            subject_alt_name_critical: true
+            backup: false
+            mode: "0o600"
+            owner: "{{ pv_vault_user }}"
+            group: "{{ pv_vault_group }}"
+
+      - name: Vaultops | Vault Virtual Node Server | Install | TLS | Sign Certificate
+        community.crypto.x509_certificate:
+            path: "{{ pv_vault_tls_dir }}/vault.pem"
+            csr_path: "{{ pv_vault_tls_dir }}/vault.csr"
+            ownca_content: "{{ root_ca_cert_pem }}"
+            ownca_privatekey_content: "{{ root_ca_key_pem }}"
+            ownca_privatekey_passphrase: "{{ root_ca_key_passphrase }}"
+            provider: ownca
+            backup: false
+            mode: "0o600"
+            return_content: true
+            owner: "{{ pv_vault_user }}"
+            group: "{{ pv_vault_group }}"
+        register: vault_tls_signed_certificate
+
+      - name: Vaultops | Vault Virtual Node Server | Install | TLS | Create certificate full chain
+        ansible.builtin.copy:
+            content: |
+                {{ vault_tls_signed_certificate.certificate | trim }}
+                {{ root_ca_cert_pem }}
+            dest: "{{ pv_vault_tls_dir }}/vault.fullchain.pem"
+            mode: "0o600"
+            owner: "{{ pv_vault_user }}"
+            group: "{{ pv_vault_group }}"
+            backup: false
+
+      - name: Vaultops | Vault Virtual Node Server | Install | TLS | Add the ca certificate for mutual tls
+        ansible.builtin.copy:
+            content: "{{ root_ca_cert_pem }}"
+            dest: "{{ pv_vault_tls_dir }}/ca-client-mtls-crt.pem"
+            mode: "0o600"
+            owner: "{{ pv_vault_user }}"
+            group: "{{ pv_vault_group }}"
+            backup: false
+
+      - name: Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate
+        ansible.builtin.include_tasks:
+            file: tasks/retry_join_tls.yml
+        loop: "{{ pv_vault_retry_join_nodes | dict2items }}"
+        loop_control:
+            loop_var: vault_retry_join_node_details
+
+- name: Vaultops | Vault Virtual Node Server | Install | Node | Enable UFW Firewall
+  community.general.ufw:
+      rule: allow
+      port: "{{ item }}"
+      proto: tcp
+      comment: Vault Node Port
+      state: enabled
+  with_items:
+      - "{{ pv_vault_node_port }}"
+      - "{{ pv_vault_cluster_port }}"
+
+- name: Vaultops | Vault Virtual Node Server | Install | Node | Enable Vault Service
+  ansible.builtin.systemd:
+      name: "{{ item }}"
+      state: started
+      enabled: true
+      daemon_reload: true
+  loop:
+      - "{{ pv_vault_systemd_service }}@{{ pv_vault_node_id }}.service"
+  # - "{{ pv_vault_backup_systemd_service }}@{{ pv_vault_node_id }}.service"
+  # - "{{ pv_vault_backup_systemd_service }}@{{ pv_vault_node_id }}.timer"
+  loop_control:
+      pause: 5

@@ -1,0 +1,66 @@
+---
+- name: Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate | Create Openssl Private Key
+  community.crypto.openssl_privatekey:
+      path: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.key"
+      type: RSA
+      size: 4096
+      backup: false
+      mode: "0o600"
+      owner: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+
+- name: Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate
+      | Create Openssl Certificate Signing Request
+  community.crypto.openssl_csr:
+      path: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.csr"
+      privatekey_path: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.key"
+      common_name: "{{ pv_vault_node_id }}"
+      basic_constraints: CA:FALSE
+      basic_constraints_critical: true
+      key_usage:
+          - digitalSignature
+          - keyEncipherment
+      extended_key_usage:
+          - clientAuth
+      subject_alt_name: "{{ vault_retry_join_node_details.value.subject_alt_name }}"
+      subject_alt_name_critical: true
+      backup: false
+      mode: "0o600"
+      owner: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+
+- name: Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate | Sign Certificate
+  community.crypto.x509_certificate:
+      path: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.pem"
+      csr_path: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.csr"
+      ownca_content: "{{ root_ca_cert_pem }}"
+      ownca_privatekey_content: "{{ root_ca_key_pem }}"
+      ownca_privatekey_passphrase: "{{ root_ca_key_passphrase }}"
+      provider: ownca
+      backup: false
+      mode: "0o600"
+      return_content: true
+      owner: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+  register: vault_tls_retry_join_node_signed_certificate
+
+- name: Vaultops | Vault Virtual Node Server | Install | TLS
+      | Retry Join Node Certificate | Create certificate full chain
+  ansible.builtin.copy:
+      content: |
+          {{ vault_tls_retry_join_node_signed_certificate.certificate | trim }}
+          {{ root_ca_cert_pem }}
+      dest: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.fullchain.pem"
+      mode: "0o600"
+      owner: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+      backup: false
+
+- name: Vaultops | Vault Virtual Node Server | Install | TLS | Retry Join Node Certificate | Add CA Certificate
+  ansible.builtin.copy:
+      content: "{{ root_ca_cert_pem }}"
+      dest: "{{ pv_vault_tls_dir }}/vault-retry-join-{{ vault_retry_join_node_details.key }}.ca.pem"
+      mode: "0o600"
+      owner: "{{ pv_vault_user }}"
+      group: "{{ pv_vault_group }}"
+      backup: false
