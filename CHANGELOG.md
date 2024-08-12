@@ -1,6 +1,6 @@
-## [1.1.1](https://github.com/arpanrec/vaultops/compare/1.1.0...1.1.1) (2024-08-12)
+## [1.1.2](https://github.com/arpanrec/vaultops/compare/1.1.1...1.1.2) (2024-08-12)
 
 
 ### Bug Fixes
 
-* f-string not needed ([034a002](https://github.com/arpanrec/vaultops/commit/034a0029a3cf709aafe7774c6f28daf63185097d))
+* added bandit check ([af09c8a](https://github.com/arpanrec/vaultops/commit/af09c8aa98854680cde0aac9fef592cc1b50bf41))
