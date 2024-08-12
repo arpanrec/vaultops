@@ -9,24 +9,6 @@ Look for the word `TODO` in the file, and change the value to your value.
 * [Python 3.10](https://www.python.org/downloads/release/python-3100/) or higher installed
   * [Poetry - PYTHON PACKAGING AND DEPENDENCY MANAGEMENT MADE EASY](https://python-poetry.org/)
 * [Terraform](https://www.terraform.io/downloads.html) installed
-* Bitwarden BWS secret manger
-  * [Secrets Manager](https://bitwarden.com/help/secrets-manager-cli/)
-  * In order to store the storage access keys, you need to have a secret manager.
-  * Set the BWS_ACCESS_TOKEN environment variable to the Bitwarden access token.
-    * Storage System Configuration
-      * In order to store the vault configuration files, you need to have a storage system.
-
-        ```json
-        {
-            "vaultops_s3_aes256_sse_customer_key_base64": "base64-encoded-key",
-            "vaultops_s3_bucket_name": "bucket-name",
-            "vaultops_s3_endpoint_url": "endpoint-url",
-            "vaultops_s3_access_key": "access-key",
-            "vaultops_s3_secret_key": "secret-key",
-            "vaultops_s3_signature_version": "signature-version",
-            "vaultops_s3_region": "region"
-        }
-        ```
 
 ## [Inventory File](inventory.yml)
 
@@ -49,6 +31,39 @@ vault_config: # TODO: Location of the vault configuration file, Type: str (Path 
 ```ini
 [defaults]
 inventory = inventory.yml
+```
+
+## (storage_config) Storage Configuration
+
+Storage for terraform state and vault snapshot.
+
+```yaml
+type: # TODO: The type of the storage, Type: str, Options: [s3, local]
+option: # TODO: The storage configuration, Type: Dict[Str, Any]
+```
+
+### (storage_config) Storage Configuration, Option: local
+
+```yaml
+---
+type: local
+option:
+    path: # TODO: The path of the local storage, Type: str
+```
+
+### (storage_config) Storage Configuration, Option: S3
+
+```yaml
+---
+type: s3
+option:
+    vaultops_s3_aes256_sse_customer_key_base64: # TODO: The base64 encoded AES256 key, Type: str
+    vaultops_s3_bucket_name: # TODO: The name of the bucket, Type: str
+    vaultops_s3_endpoint_url: # TODO: The endpoint URL of the bucket, Type: str
+    vaultops_s3_access_key: # TODO: The access key of the bucket, Type: str
+    vaultops_s3_secret_key: # TODO: The secret key of the bucket, Type: str
+    vaultops_s3_signature_version: # TODO: The signature version of the bucket, Type: str, Default: s3v4
+    vaultops_s3_region: # TODO: The region of the bucket, Type: str
 ```
 
 ## (vault_config) Vault Config, Vault Servers, Nodes and Secrets
