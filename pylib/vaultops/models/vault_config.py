@@ -143,5 +143,10 @@ class VaultConfig(BaseSettings, extra="allow"):
                 file_content=snapshot,
                 content_type="application/octet-stream",
             )
+            self.storage_config.storage_ops(
+                file_path=f"vault-raft-snapshot-latest.snap",
+                file_content=snapshot,
+                content_type="application/octet-stream",
+            )
         else:
             raise ValueError("Snapshot must be a bytes object")
