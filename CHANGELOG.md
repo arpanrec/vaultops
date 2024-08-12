@@ -1,6 +1,6 @@
-## [1.1.2](https://github.com/arpanrec/vaultops/compare/1.1.1...1.1.2) (2024-08-12)
+## [1.1.3](https://github.com/arpanrec/vaultops/compare/1.1.2...1.1.3) (2024-08-12)
 
 
 ### Bug Fixes
 
-* added bandit check ([af09c8a](https://github.com/arpanrec/vaultops/commit/af09c8aa98854680cde0aac9fef592cc1b50bf41))
+* Update workflow name to "Scans" ([dc315d0](https://github.com/arpanrec/vaultops/commit/dc315d0c9bd4927dfda6add5c49d75c37f0b2749))
