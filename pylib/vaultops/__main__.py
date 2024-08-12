@@ -66,6 +66,7 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--inventory", default="inventory.yml")
+    parser.add_argument("--github", action=argparse.BooleanOptionalAction, default=False)
     args = parser.parse_args()
     max_vaultops_retries: int = 5
     max_vaultops_retry_wait: int = 10
@@ -76,9 +77,10 @@ def main() -> None:
             vault_ha_client: VaultHaClient = vault_setup.vault_setup(args.inventory)
             LOGGER.info("Vault setup completed successfully")
 
-            # Add vault access to GitHub user repositories
-            LOGGER.info("Adding vault access to GitHub user repositories")
-            setup_github(vault_ha_client=vault_ha_client)
+            if args.github:
+                # Add vault access to GitHub user repositories
+                LOGGER.info("Adding vault access to GitHub user repositories")
+                setup_github(vault_ha_client=vault_ha_client)
 
             break
 

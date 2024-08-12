@@ -1,66 +1,45 @@
 import base64
-import json
 import os
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import boto3
 from ansible.inventory.data import InventoryData  # type: ignore
-from bitwarden_sdk import BitwardenClient, DeviceType, client_settings_from_dict  # type: ignore
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class StorageConfig(BaseModel):
     """
     Represents the secrets required for interacting with HashiCorp Vault.
 
-    Bitwarden Secrets entry:
-        {
-            "vaultops_s3_aes256_sse_customer_key_base64": "base64-encoded-key",
-            "vaultops_s3_bucket_name": "bucket-name",
-            "vaultops_s3_endpoint_url": "endpoint-url",
-            "vaultops_s3_access_key": "access-key",
-            "vaultops_s3_secret_key": "secret-key",
-            "vaultops_s3_signature_version": "signature-version",
-            "vaultops_s3_region": "region"
-        }
-
     Attributes:
-        vaultops_s3_aes256_sse_customer_key_base64 (str):
-            - The base64-encoded AES256 key for the S3 bucket.
-        vaultops_s3_bucket_name (str): The name of the S3 bucket.
-        vaultops_s3_endpoint_url (str): The endpoint URL of the S3 bucket.
-        vaultops_s3_access_key (str): The access key for the S3 bucket.
-        vaultops_s3_secret_key (str): The secret key for the S3 bucket.
-        vaultops_s3_signature_version (str): The signature version for the S3 bucket.
-        vaultops_s3_region (str): The region of the S3 bucket.
+        type: The type of storage.
+        option: The storage options.
     """
 
-    vaultops_s3_aes256_sse_customer_key_base64: str = Field(
-        description="The base64-encoded AES256 key for the S3 bucket"
-    )
-    vaultops_s3_bucket_name: str = Field(description="The name of the S3 bucket")
-    vaultops_s3_endpoint_url: str = Field(description="The endpoint URL of the S3 bucket")
-    vaultops_s3_access_key: str = Field(description="The access key for the S3 bucket")
-    vaultops_s3_secret_key: str = Field(description="The secret key for the S3 bucket")
-    vaultops_s3_signature_version: str = Field(description="The signature version for the S3 bucket")
-    vaultops_s3_region: str = Field(description="The region of the S3 bucket")
+    type: str
+    option: Dict
 
-    __storage_type = "S3"
-
-    def storage_type(self) -> str:
+    def storage_ops(self, *args: Any, **kwargs: Any) -> Optional[str]:
         """
-        Returns the location of the storage.
-
+        Args:
+            *args: Any
+            **kwargs: Any
         Returns:
-            str: The location of the storage.
+            Optional[str]: The content of the file.
         """
-        return self.__storage_type
+        if self.type == "s3":
+            return self.__s3_storage_ops(*args, **kwargs)
 
-    def storage_ops(  # pylint: disable=too-many-arguments,too-many-locals
+        if self.type == "local":
+            return self.__local_storage_ops(*args, **kwargs)
+
+        raise ValueError("Invalid storage type")
+
+    def __s3_storage_ops(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         file_path: str,
         file_content: Optional[bytes] = None,
@@ -81,31 +60,32 @@ class StorageConfig(BaseModel):
         Returns:
             Optional[str]: The content of the file.
         """
-        vaultops_s3_aes256_sse_customer_key = base64.b64decode(self.vaultops_s3_aes256_sse_customer_key_base64).decode(
-            "utf-8"
-        )
+        vaultops_s3_aes256_sse_customer_key = base64.b64decode(
+            self.option["vaultops_s3_aes256_sse_customer_key_base64"]
+        ).decode("utf-8")
+
         __s3_client = boto3.client(
             service_name="s3",
-            endpoint_url=self.vaultops_s3_endpoint_url,
-            aws_access_key_id=self.vaultops_s3_access_key,
-            aws_secret_access_key=self.vaultops_s3_secret_key,
+            endpoint_url=self.option["vaultops_s3_endpoint_url"],
+            aws_access_key_id=self.option["vaultops_s3_access_key"],
+            aws_secret_access_key=self.option["vaultops_s3_secret_key"],
             aws_session_token=None,
             config=Config(
-                signature_version=self.vaultops_s3_signature_version,
+                signature_version=self.option.get("vaultops_s3_signature_version", "s3v4"),
                 retries={"max_attempts": 3, "mode": "standard"},
             ),
             verify=True,
         )
 
         get_bucket_versioning_response = __s3_client.get_bucket_versioning(
-            Bucket=self.vaultops_s3_bucket_name,
+            Bucket=self.option["vaultops_s3_bucket_name"],
         )
         if get_bucket_versioning_response.get("Status", "") != "Enabled":
             raise ValueError("Bucket Versioning is not enabled")
 
         if file_content:
             __s3_client.put_object(
-                Bucket=self.vaultops_s3_bucket_name,
+                Bucket=self.option["vaultops_s3_bucket_name"],
                 Key=file_path,
                 Body=file_content,
                 ContentType=content_type,
@@ -117,7 +97,7 @@ class StorageConfig(BaseModel):
             return ""
         try:
             response: GetObjectOutputTypeDef = __s3_client.get_object(
-                Bucket=self.vaultops_s3_bucket_name,
+                Bucket=self.option["vaultops_s3_bucket_name"],
                 Key=file_path,
                 SSECustomerAlgorithm="AES256",
                 SSECustomerKey=vaultops_s3_aes256_sse_customer_key,
@@ -132,6 +112,44 @@ class StorageConfig(BaseModel):
         except Exception as e:
             raise ValueError("Error reading file from S3") from e
 
+    def __local_storage_ops(  # pylint: disable=too-many-arguments
+        self,
+        file_path: str,
+        file_content: Optional[bytes] = None,
+        content_type="text/plain",  # pylint: disable=unused-argument
+        content_encoding="utf-8",  # pylint: disable=unused-argument
+        content_language="en",  # pylint: disable=unused-argument
+        error_on_missing_file: bool = True,
+    ) -> Optional[str]:
+        """
+        Perform storage operations.
+        Args:
+            file_path: Path of the file.
+            file_content: Content of the file.
+            content_type: Type of the content.
+            content_encoding: Encoding of the content.
+            content_language: Language of the content.
+            error_on_missing_file: Whether to raise an error if the file is missing.
+        Returns:
+            Optional[str]: The content of the file.
+        """
+        vault_file_path = os.path.join(self.option["path"], file_path)
+        if file_content is None:
+            if not os.path.exists(vault_file_path):
+                if error_on_missing_file:
+                    raise FileNotFoundError(f"File not found at path: {vault_file_path}")
+                return None
+            with open(vault_file_path, "r", encoding="utf-8") as file:
+                return file.read()
+        try:
+            base_dir = os.path.dirname(vault_file_path)
+            os.makedirs(base_dir, exist_ok=True)
+            with open(vault_file_path, "wb") as file:
+                file.write(file_content)
+            return None
+        except Exception as e:
+            raise ValueError("Error reading file") from e
+
     def add_to_ansible_inventory(self, inventory: InventoryData) -> None:
         """
         Add the Vault configuration to the Ansible inventory file.
@@ -139,44 +157,3 @@ class StorageConfig(BaseModel):
         Args:
             inventory: The path to the Ansible inventory file.
         """
-        inventory.set_variable(
-            "all", "vaultops_s3_aes256_sse_customer_key_base64", self.vaultops_s3_aes256_sse_customer_key_base64
-        )
-        inventory.set_variable("all", "vaultops_s3_bucket_name", self.vaultops_s3_bucket_name)
-        inventory.set_variable("all", "vaultops_s3_endpoint_url", self.vaultops_s3_endpoint_url)
-        inventory.set_variable("all", "vaultops_s3_access_key", self.vaultops_s3_access_key)
-        inventory.set_variable("all", "vaultops_s3_secret_key", self.vaultops_s3_secret_key)
-        inventory.set_variable("all", "vaultops_s3_signature_version", self.vaultops_s3_signature_version)
-        inventory.set_variable("all", "vaultops_s3_region", self.vaultops_s3_region)
-
-
-def get_storage_config(bws_id: str) -> StorageConfig:
-    """
-
-    Returns:
-
-    """
-    __bitwarden_client: BitwardenClient = BitwardenClient(
-        client_settings_from_dict(
-            {
-                "apiUrl": os.getenv("API_URL", "https://api.bitwarden.com"),
-                "deviceType": DeviceType.SDK,
-                "identityUrl": os.getenv("IDENTITY_URL", "https://identity.bitwarden.com"),
-                "userAgent": "Python",
-            }
-        )
-    )
-    bws_access_token = os.getenv("BWS_ACCESS_TOKEN", default=None)
-    if not bws_access_token or len(bws_access_token) == 0:
-        raise ValueError(
-            "BWS_ACCESS_TOKEN is not set, please set the BWS_ACCESS_TOKEN environment variable"
-            " in order to access the Bitwarden secrets."
-        )
-    __bitwarden_client.access_token_login(bws_access_token)
-
-    try:
-        secrets_value_json = __bitwarden_client.secrets().get(bws_id).data.value
-    except Exception as e:
-        raise ValueError("Error fetching secrets from Bitwarden BWS, Check if the BWS ID is correct") from e
-
-    return StorageConfig(**json.loads(secrets_value_json))

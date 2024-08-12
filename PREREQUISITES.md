@@ -9,24 +9,6 @@ Look for the word `TODO` in the file, and change the value to your value.
 * [Python 3.10](https://www.python.org/downloads/release/python-3100/) or higher installed
   * [Poetry - PYTHON PACKAGING AND DEPENDENCY MANAGEMENT MADE EASY](https://python-poetry.org/)
 * [Terraform](https://www.terraform.io/downloads.html) installed
-* Bitwarden BWS secret manger
-  * [Secrets Manager](https://bitwarden.com/help/secrets-manager-cli/)
-  * In order to store the storage access keys, you need to have a secret manager.
-  * Set the BWS_ACCESS_TOKEN environment variable to the Bitwarden access token.
-    * Storage System Configuration
-      * In order to store the vault configuration files, you need to have a storage system.
-
-      ```json
-        {
-            "vaultops_s3_aes256_sse_customer_key_base64": "base64-encoded-key",
-            "vaultops_s3_bucket_name": "bucket-name",
-            "vaultops_s3_endpoint_url": "endpoint-url",
-            "vaultops_s3_access_key": "access-key",
-            "vaultops_s3_secret_key": "secret-key",
-            "vaultops_s3_signature_version": "signature-version",
-            "vaultops_s3_region": "region"
-        }
-      ```
 
 ## [Inventory File](inventory.yml)
 
@@ -40,7 +22,8 @@ Make sure the `plugin`  is set to `vault_inventory_builder`.
 ---
 plugin: vault_inventory_builder
 vaultops_tmp_dir_path: # TODO: The temporary directory path., Type: str
-vaultops_storage_bws_id: # TODO: Bitwarden ID for the storage of Vault configuration files. Set `BWS_ACCESS_TOKEN` environment variable., Type: str
+storage_config: # TODO: To store vault snapshot and terraform state, Type: str (Path to the file) | Dict: Actual Storage configuration
+vault_config: # TODO: Location of the vault configuration file, Type: str (Path to the file) | Dict: Actual Vault configuration
 ```
 
 * You can change this file in [ansible.cfg](ansible.cfg#L2) file.
@@ -50,15 +33,52 @@ vaultops_storage_bws_id: # TODO: Bitwarden ID for the storage of Vault configura
 inventory = inventory.yml
 ```
 
-## Vault Servers, Nodes and Secrets
+## Storage Configuration
 
-file: `vault_config.yml`
+Storage for terraform state and vault snapshot.
 
-This file should be located in the root directory of the vaultops storage : `vaultops_backend`.
+```yaml
+type: # TODO: The type of the storage, Type: str, Options: [s3, local]
+option: # TODO: The storage configuration, Type: Dict[Str, Any]
+```
 
-### Vault Servers, Nodes and Secrets: vault_servers
+### Option: local
 
-It's mandatory to use TLS and mTLS for Vault because Vault is a secrets management tool, and using it without TLS and mTLS is not secure.
+```yaml
+---
+type: local
+option:
+    path: # TODO: The path of the local storage, Type: str
+```
+
+### Option: S3
+
+```yaml
+---
+type: s3
+option:
+    vaultops_s3_aes256_sse_customer_key_base64: # TODO: The base64 encoded AES256 key, Type: str
+    vaultops_s3_bucket_name: # TODO: The name of the bucket, Type: str
+    vaultops_s3_endpoint_url: # TODO: The endpoint URL of the bucket, Type: str
+    vaultops_s3_access_key: # TODO: The access key of the bucket, Type: str
+    vaultops_s3_secret_key: # TODO: The secret key of the bucket, Type: str
+    vaultops_s3_signature_version: # TODO: The signature version of the bucket, Type: str, Default: s3v4
+    vaultops_s3_region: # TODO: The region of the bucket, Type: str
+```
+
+## Vault Config
+
+vault_config is a dictionary that contains the configuration of the vault , secrets and ansible inventory.
+
+```yaml
+vault_servers: # TODO: The servers of the vault cluster, Type: Dict[Str, Dict]
+vault_secrets: # TODO: The secrets of the vault cluster, Type: Dict[Str, Any]
+```
+
+### Vault Servers, Nodes
+
+It's mandatory to use TLS and mTLS for Vault because Vault is a secrets management tool,
+and using it without TLS and mTLS is not secure.
 Cloud IP addresses are not allowed, because they can change.
 
 Vault node id will be `<server-name>-<node-name>`, for example, server1-node1, server1-node2, server2-node1,
@@ -103,7 +123,7 @@ vault_servers:
 Priority of the `cluster_ip` and `api_ip` is higher than `cluster_addr_fqdn` and `api_addr_fqdn`. These options will
 be used instead of the server level if they are set on the `vault_node` level.
 
-### Vault Servers, Nodes and Secrets: vault_secrets
+### Secrets
 
 ```yaml
 ---
