@@ -1,6 +1,6 @@
-# 1.0.0 (2024-08-12)
+## [1.0.1](https://github.com/arpanrec/vaultops/compare/1.0.0...1.0.1) (2024-08-12)
 
 
-### Features
+### Bug Fixes
 
-* run id ([5277e7c](https://github.com/arpanrec/vaultops/commit/5277e7ca02084518c347656789cf04c53be9d7e7))
+* isort ([#16](https://github.com/arpanrec/vaultops/issues/16)) ([6588c75](https://github.com/arpanrec/vaultops/commit/6588c750ebca43577f68b53067034eda627f6640))
