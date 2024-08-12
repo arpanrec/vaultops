@@ -1,5 +1,5 @@
 ---
-name: scans
+name: Scans
 "on":
     pull_request:
     push:
