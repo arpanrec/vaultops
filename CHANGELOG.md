@@ -1,6 +1,6 @@
-# [1.1.0](https://github.com/arpanrec/vaultops/compare/1.0.1...1.1.0) (2024-08-12)
+## [1.1.1](https://github.com/arpanrec/vaultops/compare/1.1.0...1.1.1) (2024-08-12)
 
 
-### Features
+### Bug Fixes
 
-* Add storage operation for latest snapshot ([9adb6ea](https://github.com/arpanrec/vaultops/commit/9adb6eab652eefffd0aa6347d30aca8f4c750bd4))
+* f-string not needed ([034a002](https://github.com/arpanrec/vaultops/commit/034a0029a3cf709aafe7774c6f28daf63185097d))
