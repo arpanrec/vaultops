@@ -1,6 +1,6 @@
-## [1.1.5](https://github.com/arpanrec/vaultops/compare/1.1.4...1.1.5) (2024-08-12)
+# [1.2.0](https://github.com/arpanrec/vaultops/compare/1.1.5...1.2.0) (2024-08-13)
 
 
-### Bug Fixes
+### Features
 
-* cosmetics ([#18](https://github.com/arpanrec/vaultops/issues/18)) ([06c335f](https://github.com/arpanrec/vaultops/commit/06c335fa6f7fbc675894c73b17f7c1b0940ddeb2))
+* GPG Bot key is mandatory ([#17](https://github.com/arpanrec/vaultops/issues/17)) ([ed46baa](https://github.com/arpanrec/vaultops/commit/ed46baa336a5c3490baec2f3995d0a5e44dacc46))
