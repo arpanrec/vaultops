@@ -11,13 +11,20 @@ class GitHubProdDetails(BaseModel):
     GH_PROD_API_TOKEN: str = Field(description="The GitHub bot API token.")
 
 
+class BotGpgDetails(BaseModel):
+    """
+    Attributes:
+        GH_BOT_GPG_PRIVATE_KEY: str: The GitHub Actions GPG private key.
+        GH_BOT_GPG_PASSPHRASE: str: The GitHub Actions GPG passphrase.
+    """
+    GH_BOT_GPG_PRIVATE_KEY: str = Field(description="The GitHub Actions GPG private key.")
+    GH_BOT_GPG_PASSPHRASE: str = Field(description="The GitHub Actions GPG passphrase.")
+
+
 class GitHubBotDetails(BaseModel):
     """
     Represents the GitHub bot details.
     """
-
-    GH_BOT_GPG_PRIVATE_KEY: str = Field(description="The GitHub Actions GPG private key.")
-    GH_BOT_GPG_PASSPHRASE: str = Field(description="The GitHub Actions GPG passphrase.")
     GH_BOT_API_TOKEN: str = Field(description="The GitHub production API token.")
 
 
@@ -67,7 +74,7 @@ class VaultSecrets(BaseModel):
     external_services: Dict[str, Union[str, bool, int, Dict]] = Field(
         default={}, description="The external services required for the Vault HA cluster."
     )
-
     ansible_inventory: Dict[str, Union[str, bool, int, Dict]] = Field(
         default={}, description="The Ansible inventory details."
     )
+    bot_gpg_key: BotGpgDetails = Field(description="The GitHub Actions GPG key details.")
