@@ -5,7 +5,6 @@ from typing import Tuple
 
 import gnupg  # type: ignore
 import requests
-from hvac.exceptions import InvalidPath  # type: ignore
 
 from ..models.ha_client import VaultHaClient
 
