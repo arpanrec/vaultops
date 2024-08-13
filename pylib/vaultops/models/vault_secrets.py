@@ -14,12 +14,12 @@ class GitHubProdDetails(BaseModel):
 class BotGpgDetails(BaseModel):
     """
     Attributes:
-        GH_BOT_GPG_PRIVATE_KEY: str: The GitHub Actions GPG private key.
-        GH_BOT_GPG_PASSPHRASE: str: The GitHub Actions GPG passphrase.
+        BOT_GPG_PRIVATE_KEY: str: The GitHub Actions GPG private key.
+        BOT_GPG_PASSPHRASE: str: The GitHub Actions GPG passphrase.
     """
 
-    GH_BOT_GPG_PRIVATE_KEY: str = Field(description="The GitHub Actions GPG private key.")
-    GH_BOT_GPG_PASSPHRASE: str = Field(description="The GitHub Actions GPG passphrase.")
+    BOT_GPG_PRIVATE_KEY: str = Field(description="The GitHub Actions GPG private key.")
+    BOT_GPG_PASSPHRASE: str = Field(description="The GitHub Actions GPG passphrase.")
 
 
 class GitHubBotDetails(BaseModel):

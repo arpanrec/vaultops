@@ -31,8 +31,8 @@ def add_gpg_to_bot_github(vault_ha_client: VaultHaClient):
     )["data"]["data"]
 
     fingerprint, ascii_armored_public_keys = get_gpg_public_key_from_private_key(
-        private_key=bot_gpg_key["GH_BOT_GPG_PRIVATE_KEY"],
-        passphrase=bot_gpg_key["GH_BOT_GPG_PASSPHRASE"],
+        private_key=bot_gpg_key["BOT_GPG_PRIVATE_KEY"],
+        passphrase=bot_gpg_key["BOT_GPG_PASSPHRASE"],
     )
 
     gpg_key_response = requests.post(

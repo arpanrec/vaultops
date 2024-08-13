@@ -130,10 +130,11 @@ be used instead of the server level if they are set on the `vault_node` level.
 vault_secrets:
     vault_ha_hostname: localhost # TODO: The way to connect to vault cluster, IP address or FQDN, Type: str
     vault_ha_port: 8200 # TODO: The port of the cluster, Type: int
+    bot_gpg_key:
+        BOT_GPG_PRIVATE_KEY: # TODO: The private key of the GPG key, Type: str
+        BOT_GPG_PASSPHRASE: # TODO: The passphrase of the GPG key, Type: str
     github_details:
         github_bot:
-            GH_BOT_GPG_PRIVATE_KEY: # TODO: The private key of the GPG key, Type: str
-            GH_BOT_GPG_PASSPHRASE: # TODO: The passphrase of the GPG key, Type: str
             GH_BOT_API_TOKEN: # TODO: The GitHub API token of the bot, Type: str
         github_prod:
             GH_PROD_API_TOKEN: # TODO: The GitHub API token of the production, Type: str
