@@ -20,37 +20,25 @@ def add_gpg_to_bot_github(vault_ha_client: VaultHaClient):
     """
 
     client = vault_ha_client.hvac_client()
-    try:
-        secret_version_response = client.secrets.kv.v2.read_secret_version(
-            path="vault_secrets/github_details/github_bot",
-            mount_point="vault-secrets",
-        )
-    except InvalidPath as e:
-        LOGGER.warning("Error reading github_bot: %s", e)
-        LOGGER.info("github_bot secret not found, Skipping GitHub GPG setup")
-        return
-    except Exception as e:  # pylint: disable=broad-except
-        LOGGER.error("Error reading secret github_bot: %s", e)
-        raise ValueError("Error reading secret github_bot") from e
+    bot_gpg_key = client.secrets.kv.v2.read_secret_version(
+        path="vault_secrets/bot_gpg_key",
+        mount_point="vault-secrets",
+    )["data"]["data"]
 
-    github_bot_response = secret_version_response["data"]["data"]
-
-    required_keys = ["GH_BOT_API_TOKEN", "GH_BOT_GPG_PRIVATE_KEY", "GH_BOT_GPG_PASSPHRASE"]
-
-    for key in required_keys:
-        if key not in github_bot_response:
-            LOGGER.warning("%s not found in Vault GitHub secret, Skipping GitHub GPG setup", key)
-            return
+    github_bot = client.secrets.kv.v2.read_secret_version(
+        path="vault_secrets/github_details/github_bot",
+        mount_point="vault-secrets",
+    )["data"]["data"]
 
     fingerprint, ascii_armored_public_keys = get_gpg_public_key_from_private_key(
-        private_key=github_bot_response["GH_BOT_GPG_PRIVATE_KEY"],
-        passphrase=github_bot_response["GH_BOT_GPG_PASSPHRASE"],
+        private_key=bot_gpg_key["GH_BOT_GPG_PRIVATE_KEY"],
+        passphrase=bot_gpg_key["GH_BOT_GPG_PASSPHRASE"],
     )
 
     gpg_key_response = requests.post(
         "https://api.github.com/user/gpg_keys",
         headers={
-            "Authorization": f"Bearer {github_bot_response['GH_BOT_API_TOKEN']}",
+            "Authorization": f"Bearer {github_bot['GH_BOT_API_TOKEN']}",
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
         },

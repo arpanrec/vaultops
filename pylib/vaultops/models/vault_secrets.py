@@ -17,6 +17,7 @@ class BotGpgDetails(BaseModel):
         GH_BOT_GPG_PRIVATE_KEY: str: The GitHub Actions GPG private key.
         GH_BOT_GPG_PASSPHRASE: str: The GitHub Actions GPG passphrase.
     """
+
     GH_BOT_GPG_PRIVATE_KEY: str = Field(description="The GitHub Actions GPG private key.")
     GH_BOT_GPG_PASSPHRASE: str = Field(description="The GitHub Actions GPG passphrase.")
 
@@ -25,6 +26,7 @@ class GitHubBotDetails(BaseModel):
     """
     Represents the GitHub bot details.
     """
+
     GH_BOT_API_TOKEN: str = Field(description="The GitHub production API token.")
 
 
