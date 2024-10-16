@@ -125,7 +125,7 @@ secret:
 
 
 # pylint: disable=inconsistent-return-statements
-def run_module():
+def run_module() -> None:
     """
     Ansible main module
     """
@@ -180,7 +180,7 @@ def run_module():
         module.fail_json(msg=str(error))
 
 
-def main():
+def main() -> None:
     """
     Python Main Module
     """

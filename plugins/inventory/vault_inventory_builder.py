@@ -78,7 +78,7 @@ class InventoryModule(BaseInventoryPlugin):
     ansible_vault_server_group_name = "vault_vm_servers"
     ansible_vault_node_servers_group_name = "vault_nodes_servers"
 
-    def verify_file(self, path):
+    def verify_file(self, path: str) -> bool:
         """return true/false if this is possibly a valid file for this plugin to consume"""
         valid = False  # this means it will be ignored unless set to True later
         if path.endswith(("inventory.yml", "inventory.yaml")):
@@ -86,12 +86,12 @@ class InventoryModule(BaseInventoryPlugin):
         return valid
 
     def parse(
-        self, inventory, loader, path, cache=True
-    ):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+        self, inventory: InventoryData, loader: Any, path: str, cache: bool = True
+    ) -> None:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """parse and populate the inventory with data"""
         super().parse(inventory, loader, path)
-        self.loader = loader
-        self.templar = Templar(loader=loader)
+        self.loader: Any = loader
+        self.templar: Templar = Templar(loader=loader)
         self.inventory: InventoryData = inventory
 
         self.inventory.add_host("localhost")
@@ -100,7 +100,7 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group(self.ansible_vault_node_servers_group_name)
         ansible_inventory_dict = self._read_config_data(path)
         vault_config: VaultConfig = build_vault_config(ansible_inventory_dict)
-        vault_config.storage_config.add_to_ansible_inventory(self.inventory)
+        # vault_config.storage_config.add_to_ansible_inventory(self.inventory)
         vault_secrets: VaultSecrets = vault_config.vault_secrets
 
         vault_vm_server_ssh_user_known_hosts_file = os.path.join(

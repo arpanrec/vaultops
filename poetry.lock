@@ -129,17 +129,17 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.35.41"
+version = "1.35.42"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.35.41-py3-none-any.whl", hash = "sha256:2bf7e7f376aee52155fc4ae4487f29333a6bcdf3a05c3bc4fede10b972d951a6"},
-    {file = "boto3-1.35.41.tar.gz", hash = "sha256:e74bc6d69c04ca611b7f58afe08e2ded6cb6504a4a80557b656abeefee395f88"},
+    {file = "boto3-1.35.42-py3-none-any.whl", hash = "sha256:e1f36f8be453505cebcc3da178ea081b2a06c0e5e1cdee774f1067599b8d9c3e"},
+    {file = "boto3-1.35.42.tar.gz", hash = "sha256:a5b00f8b82dce62870759f04861747944da834d64a64355970120c475efdafc0"},
 ]
 
 [package.dependencies]
-botocore = ">=1.35.41,<1.36.0"
+botocore = ">=1.35.42,<1.36.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -148,13 +148,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.35.41"
-description = "Type annotations for boto3 1.35.41 generated with mypy-boto3-builder 8.1.2"
+version = "1.35.42"
+description = "Type annotations for boto3 1.35.42 generated with mypy-boto3-builder 8.1.2"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3_stubs-1.35.41-py3-none-any.whl", hash = "sha256:724c5999390eed5ed84832dcd003d1dcd1b12c941e50f6a6f63378c407d8fa0a"},
-    {file = "boto3_stubs-1.35.41.tar.gz", hash = "sha256:5884048edf0581479ecc3726c0b4b6d83640b5590d4646cbd229bae8f5a5666b"},
+    {file = "boto3_stubs-1.35.42-py3-none-any.whl", hash = "sha256:dbdfd9ef1669f0f0a69bfd848a841aaf8e83d932388a5277c68d192868970ef2"},
+    {file = "boto3_stubs-1.35.42.tar.gz", hash = "sha256:07c72ddaa4d61db2e4874a6e78ef016f049dd0e8da406fba913ff4ec1d144733"},
 ]
 
 [package.dependencies]
@@ -206,7 +206,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.35.0,<1.36.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.35.0,<1.36.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.35.0,<1.36.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.35.0,<1.36.0)"]
-boto3 = ["boto3 (==1.35.41)", "botocore (==1.35.41)"]
+boto3 = ["boto3 (==1.35.42)", "botocore (==1.35.42)"]
 braket = ["mypy-boto3-braket (>=1.35.0,<1.36.0)"]
 budgets = ["mypy-boto3-budgets (>=1.35.0,<1.36.0)"]
 ce = ["mypy-boto3-ce (>=1.35.0,<1.36.0)"]
@@ -559,13 +559,13 @@ xray = ["mypy-boto3-xray (>=1.35.0,<1.36.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.35.41"
+version = "1.35.42"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.35.41-py3-none-any.whl", hash = "sha256:915c4d81e3a0be3b793c1e2efdf19af1d0a9cd4a2d8de08ee18216c14d67764b"},
-    {file = "botocore-1.35.41.tar.gz", hash = "sha256:8a09a32136df8768190a6c92f0240cd59c30deb99c89026563efadbbed41fa00"},
+    {file = "botocore-1.35.42-py3-none-any.whl", hash = "sha256:05af0bb8b9cea7ce7bc589c332348d338a21b784e9d088a588fd10ec145007ff"},
+    {file = "botocore-1.35.42.tar.gz", hash = "sha256:af348636f73dc24b7e2dc760a34d08c8f2f94366e9b4c78d877307b128abecef"},
 ]
 
 [package.dependencies]
@@ -1520,13 +1520,13 @@ reports = ["lxml"]
 
 [[package]]
 name = "mypy-boto3-s3"
-version = "1.35.32"
-description = "Type annotations for boto3.S3 1.35.32 service generated with mypy-boto3-builder 8.1.2"
+version = "1.35.42"
+description = "Type annotations for boto3.S3 1.35.42 service generated with mypy-boto3-builder 8.1.2"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "mypy_boto3_s3-1.35.32-py3-none-any.whl", hash = "sha256:ad77a637c71295a693c616d0dcfadca9ee0a5426083fe40a4eb19e84453dd9fa"},
-    {file = "mypy_boto3_s3-1.35.32.tar.gz", hash = "sha256:fceeb10ea70991a516b34d11c1fde0f7f3fe7508df4e436ffe066d27d04db0e4"},
+    {file = "mypy_boto3_s3-1.35.42-py3-none-any.whl", hash = "sha256:4e47094a43012be18e8ce858d6ec50f6505ba1d5364ca611093d9f736a38e8b2"},
+    {file = "mypy_boto3_s3-1.35.42.tar.gz", hash = "sha256:2d040c05d68a161d91c4b72926127034da28ade98d480def6a9569ab7655cddd"},
 ]
 
 [package.dependencies]
@@ -1928,8 +1928,8 @@ files = []
 develop = false
 
 [package.dependencies]
-boto3 = "^1.35.41"
-boto3-stubs = {version = "^1.35.41", extras = ["s3"]}
+boto3 = "^1.35.42"
+boto3-stubs = {version = "^1.35.42", extras = ["s3"]}
 cryptography = "^43.0.1"
 hvac = "^2.3.0"
 jmespath = "^1.0.1"
@@ -1945,7 +1945,7 @@ requests = "^2.32.3"
 type = "git"
 url = "git@github.com:arpanrec/pylib.git"
 reference = "develop"
-resolved_reference = "8494fa8c2d86f92b336c79ad89115ce7f2a92102"
+resolved_reference = "de5e42d66c8bc28d5ebce3c872566820033aa462"
 
 [[package]]
 name = "pylint"
