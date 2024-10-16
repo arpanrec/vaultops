@@ -19,7 +19,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.10"
 ansible = "10.5.0"
-pylib-arpanrec = { git = "git@github.com:arpanrec/pylib_arpanrec.git", rev = "develop" }
+pylib = {git = "git@github.com:arpanrec/pylib.git", rev = "develop"}
 
 [tool.poetry.group.dev.dependencies]
 pylint = "3.3.1"
@@ -27,6 +27,7 @@ black = "24.10.0"
 isort = "5.13.2"
 bandit = "1.7.10"
 poetry-plugin-export = "1.8.0"
+mypy = "^1.12.0"
 
 [build-system]
 requires = ["poetry-core"]

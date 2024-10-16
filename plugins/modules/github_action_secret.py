@@ -11,7 +11,7 @@ from ansible.module_utils.basic import AnsibleModule  # type: ignore
 # pylint: disable=C0103
 __metaclass__ = type
 
-from vaultops.utils.github_variable import github_variable
+from pylib_utils import github_variable
 
 DOCUMENTATION = r"""
 ---
