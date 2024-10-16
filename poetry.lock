@@ -1945,7 +1945,7 @@ requests = "^2.32.3"
 type = "git"
 url = "git@github.com:arpanrec/pylib.git"
 reference = "develop"
-resolved_reference = "acf69d0ba03b85e13bfbd7374dfe7f80b19a4d04"
+resolved_reference = "8494fa8c2d86f92b336c79ad89115ce7f2a92102"
 
 [[package]]
 name = "pylint"
@@ -2662,4 +2662,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "fbd6fdfa11240c7b7b5b07ac8962a4478b35ae09ce74ab4efb209108eb9dd4f8"
+content-hash = "915f31e13b71c848932e6f4e2a811f0df1a1dc80497645ec551dfeeac9eca088"
