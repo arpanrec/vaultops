@@ -29,13 +29,13 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from pydantic_core import to_jsonable_python
 
-from pylib_vaultops.builder.vault_config import build_vault_config
-from pylib_vaultops.builder.vault_raft_node import build_raft_server_nodes_map
-from pylib_vaultops.models.vault_config import VaultConfig
-from pylib_vaultops.models.vault_raft_node import VaultRaftNode
-from pylib_vaultops.models.vault_secrets import VaultSecrets
-from pylib_vaultops.models.vault_server import VaultServer
-from pylib_vaultops.vault_setup import VaultHaClient, create_ha_client
+from pylib_arpanrec.vaultops.builder.vault_config import build_vault_config
+from pylib_arpanrec.vaultops.builder.vault_raft_node import build_raft_server_nodes_map
+from pylib_arpanrec.vaultops.models.vault_config import VaultConfig
+from pylib_arpanrec.vaultops.models.vault_raft_node import VaultRaftNode
+from pylib_arpanrec.vaultops.models.vault_secrets import VaultSecrets
+from pylib_arpanrec.vaultops.models.vault_server import VaultServer
+from pylib_arpanrec.vaultops.vault_setup import VaultHaClient, create_ha_client
 
 DOCUMENTATION = r"""
     name: instance
