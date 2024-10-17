@@ -1945,7 +1945,7 @@ requests = "^2.32.3"
 type = "git"
 url = "git@github.com:arpanrec/pylib.git"
 reference = "develop"
-resolved_reference = "11c541c460eaadb259fce04420f61ccbd5786e6c"
+resolved_reference = "50ee7534f1cca12ef35d080f0daf67a6af9a254c"
 
 [[package]]
 name = "pylint"
