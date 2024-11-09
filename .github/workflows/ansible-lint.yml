@@ -1,30 +1,22 @@
 ---
-name: Scans
+name: Ansible Lint
+
 "on":
     push:
     workflow_dispatch:
-    schedule:
-        - cron: "0 4 * * *" # run once a day at 4 AM
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
-    gitleaks:
-        name: gitleaks
+    ansible-lint:
         runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4.2.2
-              with:
-                  fetch-depth: 0
-
-            - uses: gitleaks/gitleaks-action@v2.3.7
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    bandit:
-        runs-on: ubuntu-latest
-        name: bandit
         strategy:
             fail-fast: false
             matrix:
                 python-version: ["3.10", "3.11", "3.12", "3.13"]
+        name: ansible-lint
         steps:
             - name: Checkout
               uses: actions/checkout@v4.2.2
@@ -39,8 +31,18 @@ jobs:
                   cache: "poetry"
                   # cache-dependency-path: pyproject.toml
 
-            - name: Install dependencies
-              run: poetry install --with dev
+            - name: Cache ansible
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.ansible
+                      ~/.cache/ansible-*
+                  key: ansible-cache-py.${{ matrix.python-version }}-${{ hashFiles('**/requirements.yml') }}
 
-            - name: Analysing the code with bandit
-              run: poetry run bandit -r $(git ls-files '*.py')
+            - name: Install dependencies
+              run: |+
+                  poetry install
+                  ansible-galaxy install -r requirements.yml
+
+            - name: Analysing the code with ansible-lint
+              run: poetry run ansible-lint

@@ -1,30 +1,27 @@
 ---
-name: Scans
+name: isort
+
 "on":
     push:
+        paths:
+            - "**.py"
+            - ".github/workflows/isort.yml"
+            - "poetry.lock"
+            - "pyproject.toml"
     workflow_dispatch:
-    schedule:
-        - cron: "0 4 * * *" # run once a day at 4 AM
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
-    gitleaks:
-        name: gitleaks
+    isort:
         runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4.2.2
-              with:
-                  fetch-depth: 0
-
-            - uses: gitleaks/gitleaks-action@v2.3.7
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    bandit:
-        runs-on: ubuntu-latest
-        name: bandit
         strategy:
             fail-fast: false
             matrix:
                 python-version: ["3.10", "3.11", "3.12", "3.13"]
+        name: isort
         steps:
             - name: Checkout
               uses: actions/checkout@v4.2.2
@@ -42,5 +39,5 @@ jobs:
             - name: Install dependencies
               run: poetry install --with dev
 
-            - name: Analysing the code with bandit
-              run: poetry run bandit -r $(git ls-files '*.py')
+            - name: Analysing the code with isort
+              run: poetry run isort --check-only $(git ls-files '*.py')
