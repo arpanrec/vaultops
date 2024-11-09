@@ -1,8 +1,11 @@
 ---
 name: Terraform Linting
-
 "on":
     push:
+        paths:
+            - "**.tf"
+            - ".github/workflows/terraform-fmt.yml"
+            - "codifiedvault/**"
     workflow_dispatch:
 
 concurrency:
