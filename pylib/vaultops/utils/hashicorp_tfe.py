@@ -7,6 +7,7 @@ import requests
 
 # pylint: disable=too-many-arguments,too-many-locals,too-many-branches
 def tfe_resource(
+    *,
     resource_url: str,
     resource_name: str,
     headers: Dict,
@@ -101,6 +102,7 @@ def tfe_resource(
 
 
 def terraform_workspace(  # pylint: disable=too-many-arguments
+    *,
     hostname=None,
     token=None,
     organization=None,
