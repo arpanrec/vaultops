@@ -3,7 +3,7 @@ collections:
     - name: community.general
       type: git
       source: https://github.com/ansible-collections/community.general.git
-      version: 10.0.0
+      version: 10.0.1
     - name: community.crypto
       type: git
       source: https://github.com/ansible-collections/community.crypto.git
@@ -15,7 +15,7 @@ collections:
     - name: community.docker
       type: git
       source: https://github.com/ansible-collections/community.docker.git
-      version: 4.0.0
+      version: 4.0.1
     - name: ansible.posix
       type: git
       source: https://github.com/ansible-collections/ansible.posix.git
@@ -27,7 +27,7 @@ collections:
     - name: arpanrec.nebula
       type: git
       source: https://github.com/arpanrec/arpanrec.nebula.git
-      version: 1.10.3
+      version: 1.10.9
 roles:
     - name: geerlingguy.docker
       scm: git
