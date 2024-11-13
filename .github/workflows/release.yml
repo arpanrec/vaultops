@@ -54,11 +54,9 @@ jobs:
 
             - name: Release
               run: |+
-                  set -ex
                   git config --global user.email "${{ steps.import-gpg.outputs.email }}"
                   git config --global user.name "${{ steps.import-gpg.outputs.name }}"
                   git config --global user.name "${{ steps.import-gpg.outputs.name }}"
-                  echo "Removing old CHANGELOG.md" && rm -f CHANGELOG.md
                   npx semantic-release@24.2.0 --extends ./.github/files/release.config.cjs
               env:
                   GITHUB_TOKEN: "${{ secrets.GH_BOT_API_TOKEN }}"

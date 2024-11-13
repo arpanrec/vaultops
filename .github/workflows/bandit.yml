@@ -1,23 +1,20 @@
 ---
-name: Scans
+name: "Bandit: A security linter from PyCQA"
+
 "on":
     push:
+        paths:
+            - "**.py"
+            - ".github/workflows/bandit.yml"
+            - "poetry.lock"
+            - "pyproject.toml"
     workflow_dispatch:
-    schedule:
-        - cron: "0 4 * * *" # run once a day at 4 AM
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
-    gitleaks:
-        name: gitleaks
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4.2.2
-              with:
-                  fetch-depth: 0
-
-            - uses: gitleaks/gitleaks-action@v2.3.7
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     bandit:
         runs-on: ubuntu-latest
         name: bandit
