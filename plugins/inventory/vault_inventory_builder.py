@@ -23,9 +23,10 @@ from typing import Any, Dict, List, Union
 from urllib.parse import urlsplit
 
 from ansible.inventory.data import InventoryData  # type: ignore
+from ansible.parsing.dataloader import DataLoader  # type: ignore
 from ansible.plugins.inventory import BaseInventoryPlugin  # type: ignore
 from ansible.template import Templar  # type: ignore
-from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.backends import default_backend  # type: ignore
 from cryptography.hazmat.primitives import serialization
 from pydantic_core import to_jsonable_python
 
@@ -85,9 +86,8 @@ class InventoryModule(BaseInventoryPlugin):
             valid = True
         return valid
 
-    def parse(
-        self, inventory: InventoryData, loader, path: str, cache: bool=True
-    ) -> None:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    def parse(self, inventory: InventoryData, loader: DataLoader, path: str, cache: bool = True) -> None:
         """parse and populate the inventory with data"""
         super().parse(inventory, loader, path)
         self.loader = loader
