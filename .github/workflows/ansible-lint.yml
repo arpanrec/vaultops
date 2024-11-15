@@ -1,0 +1,48 @@
+---
+name: Ansible Lint
+
+"on":
+    push:
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    ansible-lint:
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                python-version: ["3.10", "3.11", "3.12", "3.13"]
+        name: ansible-lint
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4.2.2
+
+            - name: Install poetry 1.8.4
+              run: pipx install poetry==1.8.4
+
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v5.3.0
+              with:
+                  python-version: "${{ matrix.python-version }}"
+                  cache: "poetry"
+                  # cache-dependency-path: pyproject.toml
+
+            - name: Cache ansible
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.ansible
+                      ~/.cache/ansible-*
+                  key: ansible-cache-py.${{ matrix.python-version }}-${{ hashFiles('**/requirements.yml') }}
+
+            - name: Install dependencies
+              run: |+
+                  poetry install
+                  ansible-galaxy install -r requirements.yml
+
+            - name: Analysing the code with ansible-lint
+              run: poetry run ansible-lint

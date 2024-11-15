@@ -23,9 +23,10 @@ from typing import Any, Dict, List, Union
 from urllib.parse import urlsplit
 
 from ansible.inventory.data import InventoryData  # type: ignore
+from ansible.parsing.dataloader import DataLoader  # type: ignore
 from ansible.plugins.inventory import BaseInventoryPlugin  # type: ignore
 from ansible.template import Templar  # type: ignore
-from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.backends import default_backend  # type: ignore
 from cryptography.hazmat.primitives import serialization
 from pydantic_core import to_jsonable_python
 
@@ -78,16 +79,15 @@ class InventoryModule(BaseInventoryPlugin):
     ansible_vault_server_group_name = "vault_vm_servers"
     ansible_vault_node_servers_group_name = "vault_nodes_servers"
 
-    def verify_file(self, path):
+    def verify_file(self, path: str) -> bool:
         """return true/false if this is possibly a valid file for this plugin to consume"""
         valid = False  # this means it will be ignored unless set to True later
         if path.endswith(("inventory.yml", "inventory.yaml")):
             valid = True
         return valid
 
-    def parse(
-        self, inventory, loader, path, cache=True
-    ):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    def parse(self, inventory: InventoryData, loader: DataLoader, path: str, cache: bool = True) -> None:
         """parse and populate the inventory with data"""
         super().parse(inventory, loader, path)
         self.loader = loader

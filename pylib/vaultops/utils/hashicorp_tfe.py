@@ -7,13 +7,14 @@ import requests
 
 # pylint: disable=too-many-arguments,too-many-locals,too-many-branches
 def tfe_resource(
+    *,
     resource_url: str,
     resource_name: str,
-    headers: Dict,
+    headers: Dict[str, str],
     resource_type: str,
     resource_attributes: Dict[str, Any],
-    result: Dict,
-) -> dict:
+    result: Dict[str, Any],
+) -> Dict[str, Any]:
     """Terraform Cloud Resource Manage"""
     _resource_url_name = f"{resource_url}/{resource_name}"
     _resource_details_response = requests.get(_resource_url_name, timeout=30, headers=headers)
@@ -100,14 +101,16 @@ def tfe_resource(
     return result
 
 
-def terraform_workspace(  # pylint: disable=too-many-arguments
-    hostname=None,
-    token=None,
-    organization=None,
-    organization_attributes=None,
-    workspace=None,
-    workspace_attributes=None,
-) -> dict:
+# pylint: disable=too-many-arguments
+def terraform_workspace(
+    *,
+    hostname: str,
+    token: str,
+    organization: str,
+    organization_attributes: Dict[str, str],
+    workspace: str,
+    workspace_attributes: Dict[str, str],
+) -> Dict[str, Any]:
     """Terraform Cloud Resource Manage"""
     result: Dict[str, Any] = {
         "changed": False,
