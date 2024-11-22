@@ -38,7 +38,7 @@ jobs:
               with:
                   python-version: "3.12"
                   cache: "poetry"
-                  # cache-dependency-path: pyproject.toml
+                  cache-dependency-path: poetry.lock
 
             - name: Install python dependencies
               run: poetry install
