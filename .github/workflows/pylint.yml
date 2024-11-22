@@ -10,6 +10,13 @@ name: Pylint
             - "poetry.lock"
             - "pyproject.toml"
     workflow_dispatch:
+    pull_request:
+        paths:
+            - "**.py"
+            - ".github/workflows/pylint.yml"
+            - ".pylint.*"
+            - "poetry.lock"
+            - "pyproject.toml"
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}

@@ -9,6 +9,12 @@ name: "Mypy: Static Typing for Python"
             - "poetry.lock"
             - "pyproject.toml"
     workflow_dispatch:
+    pull_request:
+        paths:
+            - "**.py"
+            - ".github/workflows/mypy.yml"
+            - "poetry.lock"
+            - "pyproject.toml"
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}

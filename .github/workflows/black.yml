@@ -9,6 +9,12 @@ name: Black
             - "poetry.lock"
             - "pyproject.toml"
     workflow_dispatch:
+    pull_request:
+        paths:
+            - "**.py"
+            - ".github/workflows/black.yml"
+            - "poetry.lock"
+            - "pyproject.toml"
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
