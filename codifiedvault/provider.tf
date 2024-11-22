@@ -15,8 +15,7 @@ provider "vault" {
   skip_tls_verify  = false
   token_name       = "codified_vault"
   skip_child_token = false
-  client_auth {
-    # Changed from client_auth
+  client_auth { # Changed from client_auth https://github.com/hashicorp/terraform-provider-vault/issues/2130
     cert_file = var.codifiedvault_vault_client_cert_file
     key_file  = var.codifiedvault_vault_client_key_file
   }
