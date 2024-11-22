@@ -39,7 +39,7 @@ class StorageConfig(BaseModel):
 
         raise ValueError("Invalid storage type")
 
-    # pylint: disable=too-many-arguments,too-many-locals
+    # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
     def __s3_storage_ops(
         self,
         file_path: str,
@@ -113,6 +113,7 @@ class StorageConfig(BaseModel):
         except Exception as e:
             raise ValueError("Error reading file from S3") from e
 
+    # pylint: disable=too-many-positional-arguments
     def __local_storage_ops(
         self,
         file_path: str,
