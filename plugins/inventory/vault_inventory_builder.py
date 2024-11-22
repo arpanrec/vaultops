@@ -26,6 +26,7 @@ from ansible.inventory.data import InventoryData  # type: ignore
 from ansible.parsing.dataloader import DataLoader  # type: ignore
 from ansible.plugins.inventory import BaseInventoryPlugin  # type: ignore
 from ansible.template import Templar  # type: ignore
+from ansible.utils.display import Display  # type: ignore
 from cryptography.hazmat.backends import default_backend  # type: ignore
 from cryptography.hazmat.primitives import serialization
 from pydantic_core import to_jsonable_python
@@ -67,6 +68,8 @@ DOCUMENTATION = r"""
             type: dict | str
 """
 
+_display = Display()
+
 
 class InventoryModule(BaseInventoryPlugin):
     """
@@ -89,16 +92,21 @@ class InventoryModule(BaseInventoryPlugin):
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     def parse(self, inventory: InventoryData, loader: DataLoader, path: str, cache: bool = True) -> None:
         """parse and populate the inventory with data"""
-        super().parse(inventory, loader, path)
+        super().parse(inventory, loader, path, cache)
         self.loader = loader
         self.templar = Templar(loader=loader)
-        self.inventory: InventoryData = inventory
+        self.inventory = inventory
 
         self.inventory.add_host("localhost")
+
+        _display.v(f"Vault Inventory Builder Plugin: Parsing inventory file: {path}")
 
         self.inventory.add_group(self.ansible_vault_server_group_name)
         self.inventory.add_group(self.ansible_vault_node_servers_group_name)
         ansible_inventory_dict = self._read_config_data(path)
+        _display.v(f"Vault Inventory Builder Plugin: Ansible Inventory Dict: {ansible_inventory_dict}")
+        print(ansible_inventory_dict)
+        exit(1)
         vault_config: VaultConfig = build_vault_config(ansible_inventory_dict)
         vault_config.storage_config.add_to_ansible_inventory(self.inventory)
         vault_secrets: VaultSecrets = vault_config.vault_secrets
