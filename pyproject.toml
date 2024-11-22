@@ -41,6 +41,7 @@ pygithub = "2.5.0"
 python-gnupg = "0.5.3"
 boto3 = "1.35.59"
 boto3-stubs = { extras = ["s3"], version = "1.35.59" } # extras = ["all"]
+cachier = "3.1.2"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "1.13.0"
