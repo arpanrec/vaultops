@@ -1,0 +1,5 @@
+---
+plugin: vault_inventory_builder
+vaultops_tmp_dir_path: /tmp/vaultops
+storage_config: /home/arpan/google-drive/Work/Project Files/vaultops-cloud/storage_config.yml
+vault_config: /home/arpan/google-drive/Work/Project Files/vaultops-cloud/vault_config.yml
