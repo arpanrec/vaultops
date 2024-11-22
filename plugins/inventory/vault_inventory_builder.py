@@ -104,9 +104,7 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group(self.ansible_vault_server_group_name)
         self.inventory.add_group(self.ansible_vault_node_servers_group_name)
         ansible_inventory_dict = self._read_config_data(path)
-        _display.v(f"Vault Inventory Builder Plugin: Ansible Inventory Dict: {ansible_inventory_dict}")
-        print(ansible_inventory_dict)
-        exit(1)
+        # print(self.templar.template(ansible_inventory_dict["vault_config"]))
         vault_config: VaultConfig = build_vault_config(ansible_inventory_dict)
         vault_config.storage_config.add_to_ansible_inventory(self.inventory)
         vault_secrets: VaultSecrets = vault_config.vault_secrets
