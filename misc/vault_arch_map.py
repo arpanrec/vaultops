@@ -1,5 +1,5 @@
 # pylint: disable=C0114
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 import requests
 import yaml
